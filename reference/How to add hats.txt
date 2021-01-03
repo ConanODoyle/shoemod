@@ -1,0 +1,20 @@
+How to add hats
+
+Easy method:
+Stick the model and all the textures in a zip named "HatMod_*" where * can be whatever you like. Put the zip in the Add-ons folder. The .dts file name will be used as the hats ingame name.
+
+Organized method:
+The easy method will work fine, however you can put each hat in a seperate folder within the zip to keep it more organized. In this case, the name of the folder will be the hat's ingame name.
+
+
+Configuring:
+If you place a .txt document with the .dts file with the same name as the hat (Easy) or "config.txt" (Organized), it will be read for the following:
+offset x y z: Offsets the hat in 3rd person.
+minVer x: Makes the hat not load unless this version (or above) of HatMod is used. Use this if you are using a new config option, and the hat does not work without it.
+eyeOffset x y z: Offsets the hat in 1st person. Default is 0 0 -1000 (so you cant see it). Added in v2.
+
+
+SimpleWell:
+Compatability has been added for the SimpleWell hats. It is worth noting that although this feature is implemented, it is not garenteed to work. You do not need to enable the simplewell hats in the add-on list, they will be added automatically.
+
+	- Boodals <3
