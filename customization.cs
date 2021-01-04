@@ -6,6 +6,18 @@ function registerShoeCustomizationVar(%varName)
 	}
 }
 
+function getValidPartList(%db)
+{
+	%scriptObj = getShoeScriptObject(%db);
+	return %scriptObj.parts;
+}
+
+function isPartValid(%db, %part)
+{
+	%validParts = getValidPartList(%db);
+	return strContainsWord(%db, %part);
+}
+
 function serverCmdSetShoeColor(%cl, %part, %r, %g, %b)
 {
 	//default to paintcan color if no color specified
