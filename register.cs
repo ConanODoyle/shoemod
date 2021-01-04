@@ -3,6 +3,20 @@ if (!isObject($ShoeSet))
 	$ShoeSet = new SimSet(ShoeSet);
 }
 
+package ShoeSetDestroy
+{
+	function destroyServer ()
+	{
+		if (isObject($ShoeSet))
+		{
+			$ShoeSet.deleteAll();
+			$ShoeSet.delete();
+		}
+		return parent::destroyServer();
+	}
+};
+activatePackage(ShoeSetDestroy);
+
 
 
 
@@ -10,7 +24,7 @@ if (!isObject($ShoeSet))
 
 function getShoeName(%directory)
 {
-	%start = strPos(strLwr(%directory), "add-ons/shoemod_");
+	%start = strPos(strLwr(%directory), "add-ons/shoeMod_");
 	if (%start < 0)
 	{
 		warn ("getShoeName: ERROR - invalid directory!");
@@ -65,18 +79,21 @@ function createShoeDatablock(%datablockName, %shapeFileDir)
 
 function getShoeScriptObject(%shoeName)
 {
+	%safeShoeName = getSafeVariableName(%shoeName);
 	//support passing in a shoe datablock
 	if (%shoeName.getClassName() $= "PlayerData")
 	{
 		return %shoeName.shoeScriptObj;
 	}
-
-	if (isObject("Shoemod_" @ %shoeName))
+	else if (isObject($ShoeSet.shoeTable_[%safeShoeName]))
 	{
-		("ShoeMod_" @ %shoeName).delete();
+		return $ShoeSet.shoeTable_[%safeShoeName];	
 	}
-	%obj = new ScriptObject("Shoemod_" @ %shoeName);
-	return "Shoemod_" @ %shoeName;
+	else if (!isObject("ShoeMod_" @ %safeShoeName))
+	{
+		return new ScriptObject("ShoeMod_" @ %safeShoeName);
+	}
+	return ("ShoeMod_" @ %safeShoeName).getID();
 }
 
 function parseShoeSettings(%scriptObj, %directory)
@@ -116,6 +133,12 @@ function registerShoeScriptObjectVar(%scriptObj, %varname, %value)
 
 
 
+function isRegisteredShoe(%shoeName)
+{
+	return isObject($ShoeSet.shoeTable_[getSafeVariableName(%shoeName)])
+		|| isObject("ShoeMod_" @ getSafeVariableName(%shoeName));
+}
+
 function ShoeMod_registerShoe(%directory, %shoeName)
 {
 	%lShoeDTS = %directory @ "lShoe.dts";
@@ -131,7 +154,7 @@ function ShoeMod_registerShoe(%directory, %shoeName)
 		{
 			%missing = trim(%missing SPC "rShoe.dts");
 		}
-		warn("Shoemod_registerShoe: ERROR - " @ %directory @ " is missing " @ strReplace(%missing, " ", " and ") @ "!");
+		warn("ShoeMod_registerShoe: ERROR - " @ %directory @ " is missing " @ strReplace(%missing, " ", " and ") @ "!");
 		return 0;
 	}
 
@@ -146,20 +169,29 @@ function ShoeMod_registerShoe(%directory, %shoeName)
 	if (isObject(%rDBName)) { echo("    datablock " @ %rDBName @ " already exists, skipping..."); }
 	else { createShoeDatablock(%rDBName, %rShoeDTS); }
 
-	%scriptObj = getShoeScriptObject(%safeShoeName);
+	%scriptObj = ShoeMod_registerShoeSettings(%directory, %shoeName);
 
 	%scriptObj.lShoeDB = %lDBName;
 	%scriptObj.rShoeDB = %rDBName;
-	%scriptObj.shoeName = %shoeName;
-	%scriptObj.safeShoeName = %safeShoeName;
 	%lDBName.shoeScriptObj = %scriptObj;
 	%rDBName.shoeScriptObj = %scriptObj;
-
-	parseShoeSettings(%scriptObj, %directory);
 
 	$ShoeSet.add(%scriptObj);
 	$ShoeSet.shoeTable_[%safeShoeName] = %scriptObj;
 
+	return %scriptObj;
+}
+
+function ShoeMod_registerShoeSettings(%directory, %shoeName)
+{
+	%safeShoeName = getSafeVariableName(%shoeName);
+	%scriptObj = getShoeScriptObject(%safeShoeName);
+
+	%scriptObj.shoeName = %shoeName;
+	%scriptObj.safeShoeName = %safeShoeName;
+	%scriptObj.directory = %directory;
+
+	parseShoeSettings(%scriptObj, %directory);
 	return %scriptObj;
 }
 
@@ -208,8 +240,10 @@ function ShoeMod_registerAllShoes()
 			%safeShoeName = getSafeVariableName(%shoeName);
 
 			//check if already added
-			if (%checkedShoeName[%safeShoeName])
+			if (isRegisteredShoe(%shoeName))
 			{
+				//re-register shoe settings only, in case this is manually called to update shoes
+				ShoeMod_registerShoeSettings(%directory, %shoeName);
 				continue;
 			}
 
@@ -227,8 +261,6 @@ function ShoeMod_registerAllShoes()
 					continue;
 				}
 			}
-
-			%checkedShoeName[%safeShoeName] = 1;
 			ShoeMod_registerShoe(%directory, %shoeName);
 		}
 	}
