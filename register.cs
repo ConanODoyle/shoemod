@@ -58,6 +58,8 @@ function createShoeDatablock(%datablockName, %shapeFileDir)
 	%db.runForce = 0;
 	%db.jumpForce = 0;
 
+	%db.skipMountSound = 1; //used in lib/disableMountSound.cs
+
 	return %db;
 }
 
@@ -114,22 +116,22 @@ function registerShoeScriptObjectVar(%scriptObj, %varname, %value)
 
 function ShoeMod_registerShoe(%directory, %shoeName)
 {
-	if (!isFile(%directory @ "lShoe.dts") || !isFile(%directory @ "rShoe.dts"))
+	%lShoeDTS = %directory @ "lShoe.dts";
+	%rShoeDTS = %directory @ "rShoe.dts";
+
+	if (!(%lShoePresent = isFile(%lShoeDTS)) || !(%rShoePresent = isFile(%rShoeDTS)))
 	{
-		if (!isFile(%directory @ "lShoe.dts"))
+		if (!%lShoePresent)
 		{
 			%missing = "lShoe.dts";
 		}
-		if (!isFile(%directory @ "rShoe.dts"))
+		if (!%rShoePresent)
 		{
 			%missing = trim(%missing SPC "rShoe.dts");
 		}
 		warn("Shoemod_registerShoe: ERROR - " @ %directory @ " is missing " @ strReplace(%missing, " ", " and ") @ "!");
 		return 0;
 	}
-
-	%lShoeDTS = %directory @ "lShoe.dts";
-	%rShoeDTS = %directory @ "rShoe.dts";
 
 	%lDBName = getSafeVariableName(%shoeName) @ "LShoeArmor";
 	%rDBName = getSafeVariableName(%shoeName) @ "RShoeArmor";
@@ -152,6 +154,12 @@ function ShoeMod_registerShoe(%directory, %shoeName)
 	return %scriptObj;
 }
 
+function ShoeMod_clearSearchPatterns()
+{
+	deleteVariables("$Shoemod::SearchPattern*");
+	$ShoeMod::SearchPatternCount = 0;
+}
+
 function ShoeMod_registerSearchPattern(%string)
 {
 	for (%i = 0; %i < $ShoeMod::SearchPatternCount; %i++)
@@ -161,21 +169,10 @@ function ShoeMod_registerSearchPattern(%string)
 			warn("ShoeMod_registerSearchPattern: ERROR - search pattern already registered!");
 			return;
 		}
-		else if ($ShoeMod::SearchPattern[%i] $= "" && %empty $= "")
-		{
-			%empty = %i;
-		}
 	}
 
-	if (%empty !$= "")
-	{
-		$ShoeMod::SearchPattern[%empty] = %string;
-	}
-	else
-	{
-		$ShoeMod::SearchPattern[$ShoeMod::SearchPatternCount] = %string;
-		$ShoeMod::SearchPatternCount++;
-	}
+	$ShoeMod::SearchPattern[$ShoeMod::SearchPatternCount] = %string;
+	$ShoeMod::SearchPatternCount++;
 
 	echo("Registered ShoeMod search pattern \"" @ %string @ "\"");
 }
@@ -191,7 +188,7 @@ function ShoeMod_registerAllShoes()
 	for (%i = 0; %i < $ShoeMod::SearchPatternCount; %i++)
 	{
 		%pattern = $ShoeMod::SearchPattern[%i];
-		%checkForEnabled = getSubStr(%pattern, 0, 16) $= "Add-ons/ShoeMod_";
+		%checkForEnabled = (getSubStr(%pattern, 0, 16) $= "Add-ons/ShoeMod_");
 
 		for (%dir = findFirstfile(%pattern); %dir !$= ""; %dir = findNextFile(%pattern))
 		{
@@ -199,9 +196,10 @@ function ShoeMod_registerAllShoes()
 			
 			%directory = getSubStr(%dir, 0, %lastSlash + 1);
 			%shoeName = getShoeName(%directory);
+			%safeShoeName = getSafeVariableName(%shoeName);
 
 			//check if already added
-			if (%checkedShoeName[getSafeVariableName(%shoeName)])
+			if (%checkedShoeName[%safeShoeName])
 			{
 				continue;
 			}
@@ -221,7 +219,7 @@ function ShoeMod_registerAllShoes()
 				}
 			}
 
-			%checkedShoeName[getSafeVariableName(%shoeName)] = 1;
+			%checkedShoeName[%safeShoeName] = 1;
 			ShoeMod_registerShoe(%directory, %shoeName);
 		}
 	}
