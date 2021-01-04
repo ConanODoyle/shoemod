@@ -65,6 +65,12 @@ function createShoeDatablock(%datablockName, %shapeFileDir)
 
 function getShoeScriptObject(%shoeName)
 {
+	//support passing in a shoe datablock
+	if (%shoeName.getClassName() $= "PlayerData")
+	{
+		return %shoeName.shoeScriptObj;
+	}
+
 	if (isObject("Shoemod_" @ %shoeName))
 	{
 		("ShoeMod_" @ %shoeName).delete();
@@ -110,10 +116,6 @@ function registerShoeScriptObjectVar(%scriptObj, %varname, %value)
 
 
 
-
-
-
-
 function ShoeMod_registerShoe(%directory, %shoeName)
 {
 	%lShoeDTS = %directory @ "lShoe.dts";
@@ -133,8 +135,10 @@ function ShoeMod_registerShoe(%directory, %shoeName)
 		return 0;
 	}
 
-	%lDBName = getSafeVariableName(%shoeName) @ "LShoeArmor";
-	%rDBName = getSafeVariableName(%shoeName) @ "RShoeArmor";
+	%safeShoeName = getSafeVariableName(%shoeName);
+
+	%lDBName = %safeShoeName @ "LShoeArmor";
+	%rDBName = %safeShoeName @ "RShoeArmor";
 
 	if (isObject(%lDBName)) { echo("    datablock " @ %lDBName @ " already exists, skipping..."); }
 	else { createShoeDatablock(%lDBName, %lShoeDTS); }
@@ -142,14 +146,19 @@ function ShoeMod_registerShoe(%directory, %shoeName)
 	if (isObject(%rDBName)) { echo("    datablock " @ %rDBName @ " already exists, skipping..."); }
 	else { createShoeDatablock(%rDBName, %rShoeDTS); }
 
-	%scriptObj = getShoeScriptObject(getSafeVariableName(%shoeName));
-	parseShoeSettings(%scriptObj, %directory);
+	%scriptObj = getShoeScriptObject(%safeShoeName);
 
 	%scriptObj.lShoeDB = %lDBName;
 	%scriptObj.rShoeDB = %rDBName;
 	%scriptObj.shoeName = %shoeName;
+	%scriptObj.safeShoeName = %safeShoeName;
+	%lDBName.shoeScriptObj = %scriptObj;
+	%rDBName.shoeScriptObj = %scriptObj;
+
+	parseShoeSettings(%scriptObj, %directory);
 
 	$ShoeSet.add(%scriptObj);
+	$ShoeSet.shoeTable_[%safeShoeName] = %scriptObj;
 
 	return %scriptObj;
 }
