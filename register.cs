@@ -7,11 +7,7 @@ package ShoeSetDestroy
 {
 	function destroyServer ()
 	{
-		if (isObject($ShoeSet))
-		{
-			$ShoeSet.deleteAll();
-			$ShoeSet.delete();
-		}
+		deleteShoeSet();
 		return parent::destroyServer();
 	}
 };
@@ -22,15 +18,26 @@ activatePackage(ShoeSetDestroy);
 
 
 
+function deleteShoeSet()
+{
+	if (isObject($ShoeSet))
+	{
+		$ShoeSet.deleteAll();
+		$ShoeSet.delete();
+	}
+}
+
 function getShoeName(%directory)
 {
-	%start = strPos(strLwr(%directory), "add-ons/shoeMod_");
-	if (%start < 0)
+	%start = strPos(strLwr(%directory), "add-ons/shoemod_");
+	if (%start == 0)
 	{
-		warn ("getShoeName: ERROR - invalid directory!");
-		return "";
+		%name = getSubStr(%directory, %start + 16, strLen(%directory));
 	}
-	%name = getSubStr(%directory, %start + 16, strLen(%directory));
+	else
+	{
+		%name = getSubStr(%directory, strPos(%directory, "_"), strLen(%directory));
+	}
 
 	//check if there are subfolders and use the last folder's name
 	//eg. Add-ons/ShoeMod_Cleats/lShoe.dts >> "Cleats"
@@ -81,7 +88,7 @@ function getShoeScriptObject(%shoeName)
 {
 	%safeShoeName = getSafeVariableName(%shoeName);
 	//support passing in a shoe datablock
-	if (%shoeName.getClassName() $= "PlayerData")
+	if (isObject(%shoeName) && %shoeName.getClassName() $= "PlayerData")
 	{
 		return %shoeName.shoeScriptObj;
 	}
@@ -231,6 +238,7 @@ function ShoeMod_registerAllShoes()
 		%pattern = $ShoeMod::SearchPattern[%i];
 		%checkForEnabled = (getSubStr(%pattern, 0, 16) $= "Add-ons/ShoeMod_");
 
+		echo("Checking pattern: " @ %pattern);
 		for (%dir = findFirstfile(%pattern); %dir !$= ""; %dir = findNextFile(%pattern))
 		{
 			%lastSlash = getLastStrPos(%dir, "/");
@@ -239,7 +247,14 @@ function ShoeMod_registerAllShoes()
 			%shoeName = getShoeName(%directory);
 			%safeShoeName = getSafeVariableName(%shoeName);
 
-			//check if already added
+			//check if already added/checked
+			if (%visitedDirectory[getSafeVariableName(%directory)])
+			{
+				continue;
+			}
+			%visitedDirectory[getSafeVariableName(%directory)] = 1;
+
+			echo("Checking directory: " @ %directory);
 			if (isRegisteredShoe(%shoeName))
 			{
 				//re-register shoe settings only, in case this is manually called to update shoes
@@ -255,15 +270,18 @@ function ShoeMod_registerAllShoes()
 				{
 					if (!%echo[%addonName])
 					{
-						echo("Skipping registering " @ %addonName @ " - add-on is disabled");
+						echo("    Skipping registering " @ %addonName @ " - add-on is disabled");
 					}
 					%echo[%addonName] = 1;
 					continue;
 				}
 			}
 			ShoeMod_registerShoe(%directory, %shoeName);
+			echo("    Registered '" @ %shoeName @ "' shoe in " @ %directory);
+			%registeredCount++;
 		}
 	}
+	echo("Registered " @ %registeredCount + 0 @ " new shoes");
 }
 
-schedule(1, 0, ShoeMod_registerAllShoes);
+// schedule(1, 0, ShoeMod_registerAllShoes);

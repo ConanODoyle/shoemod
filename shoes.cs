@@ -1,3 +1,107 @@
+package ShoeMod_Shoes
+{
+	function Armor::onDisabled(%this, %obj, %state)
+	{
+		if (%this.keepOnDeath)
+		{
+			return;
+		}
+
+		return parent::onDisabled(%this, %obj, %state);
+	}
+
+	function Armor::onRemove(%this, %obj)
+	{
+		if (isObject(%obj.rShoe))
+		{
+			%obj.rShoe.delete();
+		}
+		if (isObject(%obj.lShoe))
+		{
+			%obj.lShoe.delete();
+		}
+		if (isObject(%obj.dummyBot))
+		{
+			%obj.dummyBot.delete();
+		}
+
+		return parent::onRemove(%this, %obj, %state);
+	}
+
+	function Player::setScale(%pl, %scale)
+	{
+		%pl.unmountObject(%pl.dummyBot);
+		%pl.unmountObject(%pl.lShoe);
+		%pl.unmountObject(%pl.rShoe);
+
+		parent::setScale(%pl, %scale);
+		if (isObject(%pl.dummyBot))
+		{
+			%pl.dummyBot.setScale(%scale);
+			%pl.mountObject(%pl.dummyBot, 2);
+		}
+		if (isObject(%pl.rShoe))
+		{
+			%pl.rShoe.setScale(%scale);
+			%pl.mountObject(%pl.rShoe, 3);
+		}
+		if (isObject(%pl.lShoe))
+		{
+			%pl.lShoe.setScale(%scale);
+			%pl.mountObject(%pl.lShoe, 4);
+		}
+	}
+
+	function GameConnection::applyBodyParts(%cl)
+	{
+		%ret = parent::applyBodyParts(%cl);
+
+		//TODO: change to re-wear shoes
+		// if (isObject(%pl = %cl.player))
+		// {
+		// 	if (isObject(%pl.rShoe))
+		// 	{
+		// 		%pl.rShoe.delete();
+		// 	}
+		// 	if (isObject(%pl.lShoe))
+		// 	{
+		// 		%pl.lShoe.delete();
+		// 	}
+		// 	if (isObject(%pl.dummyBot))
+		// 	{
+		// 		%pl.dummyBot.delete();
+		// 	}
+		// }
+
+		return %ret;
+	}
+
+	function Armor::onNewDatablock(%datablock, %obj)
+	{
+		%ret = parent::onNewDatablock(%datablock, %obj);
+
+		if (isObject(%obj.dummyBot))
+		{
+			%obj.mountObject(%obj.dummyBot, 2);
+		}
+		if (isObject(%obj.rShoe))
+		{
+			%obj.mountObject(%obj.rShoe, 3);
+		}
+		if (isObject(%obj.lShoe))
+		{
+			%obj.mountObject(%obj.lShoe, 4);
+		}
+		
+		return %ret;
+	}
+};
+activatePackage(ShoeMod_Shoes);
+
+
+
+
+
 
 function ShoeMod_removeShoes(%obj, %cl)
 {
@@ -12,6 +116,11 @@ function ShoeMod_removeShoes(%obj, %cl)
 	if (isObject(%obj.dummyBot))
 	{
 		%obj.dummyBot.delete();
+	}
+
+	if (%cl.player == %obj && isFunction(%cl.getClassName(), "applyBodyParts"))
+	{
+		%cl.applyBodyParts();
 	}
 }
 
@@ -56,21 +165,147 @@ function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 	%rShoe.kill();
 	%lShoe.kill();
 
-	applyShoeColors(%rShoe, %cl);
-	applyShoeColors(%lShoe, %cl);
-
 	%obj.mountObject(%rShoe, 3);
 	%obj.mountObject(%lShoe, 4);
 
-	if (%cl.rLeg == 0)
-		%obj.rShoe = %rShoe;
-	else
-		%rShoe.delete();
+	%obj.rShoe = %rShoe;
+	%obj.lShoe = %lShoe;
 
-	if (%cl.lLeg == 0)
-		%obj.lShoe = %lShoe;
-	else
-		%lShoe.delete();
-
+	validateAvatarLegs(%obj, %shoeName, %cl);
+	
 	return 1;
+}
+
+function validateAvatarLegs(%obj, %shoeName, %cl)
+{
+	%scriptObj = getShoeScriptObject(%shoeName);
+
+	if (%scriptObj.deleteIfShoe)
+	{
+		if (%cl.lleg == 0) { %obj.lShoe.delete(); }
+		if (%cl.rleg == 0) { %obj.rShoe.delete(); }
+	}
+	if (%scriptObj.deleteIfPeg)
+	{
+		if (%cl.lleg == 1) { %obj.lShoe.delete(); }
+		if (%cl.rleg == 1) { %obj.rShoe.delete(); }
+	}
+	if (%scriptObj.deleteIfSkirt)
+	{
+		if (%cl.hip == 1) { %obj.lShoe.delete(); %obj.rShoe.delete(); }
+	}
+
+	if (getWordCount(%scriptObj.hideNodeList) > 0)
+	{
+		for (%i = 0; %i < getWordCount(%scriptObj.hideNodeList); %i++)
+		{
+			%obj.hideNode(getWord(%scriptObj.hideNodeList, %i));
+		}
+	}
+	if (getWordCount(%scriptObj.showNodeList) > 0)
+	{
+		for (%i = 0; %i < getWordCount(%scriptObj.showNodeList); %i++)
+		{
+			%obj.unhideNode(getWord(%scriptObj.showNodeList, %i));
+		}
+	}
+}
+
+
+
+
+
+
+function GameConnection::setCurrentShoes(%cl, %shoeName)
+{
+	if (!isRegisteredShoe(%shoeName))
+	{
+		return 0;
+	}
+
+	$ShoeMod::CurrShoe_[%cl.bl_id] = %shoeName;
+}
+
+function GameConnection::wearShoes(%cl, %shoeName)
+{
+	if (!isObject(%pl = %cl.player) || !isRegisteredShoe(%shoeName))
+	{
+		return 0;
+	}
+
+	ShoeMod_wearShoes(%pl, %shoeName, %cl);
+}
+
+function Player::wearShoes(%pl, %shoeName)
+{
+	ShoeMod_wearShoes(%pl, %shoeName, %pl.client);
+}
+
+function AIPlayer::wearShoes(%obj, %shoeName)
+{
+	ShoeMod_wearShoes(%obj, %shoeName, %obj.client);
+}
+
+function GameConnection::unwearShoes(%cl)
+{
+	if (!isObject(%pl = %cl.player))
+	{
+		return 0;
+	}
+
+	ShoeMod_removeShoes(%pl, %cl);
+}
+
+function Player::unwearShoes(%pl)
+{
+	ShoeMod_removeShoes(%pl, %pl.client);
+}
+
+function AIPlayer::unwearShoes(%pl)
+{
+	ShoeMod_removeShoes(%pl, %pl.client);
+}
+
+function GameConnection::getCurrentShoes(%cl)
+{
+	if (isObject(%pl = %cl.player))
+	{
+		return %pl.getCurrentShoes();
+	}
+	else
+	{
+		return $ShoeMod::CurrShoe_[%cl.bl_id];
+	}
+}
+
+function Player::getCurrentShoes(%pl)
+{
+	if (isObject(%pl.lShoe))
+	{
+		return getShoeScriptObject(%pl.lShoe.getDatablock());
+	}
+	else if (isObject(%pl.rShoe))
+	{
+		return getShoeScriptObject(%pl.rShoe.getDatablock());
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+function AIPlayer::getCurrentShoes(%pl)
+{
+	if (isObject(%pl.lShoe))
+	{
+		return getShoeScriptObject(%pl.lShoe.getDatablock());
+	}
+	else if (isObject(%pl.rShoe))
+	{
+		return getShoeScriptObject(%pl.rShoe.getDatablock());
+	}
+	else
+	{
+		return 0;
+	}
 }
