@@ -63,6 +63,35 @@ package ShoeMod_Shoes
 		
 		return %ret;
 	}
+
+	function GameConnection::onClientEnterGame(%cl)
+	{
+		%ret = parent::onClientEnterGame(%cl);
+
+		if (isFile("config/server/ShoeMod/" @ %cl.bl_id @ ".cs"))
+		{
+			//TODO: Replace with manual file loading as suggested by Eagle
+			exec("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
+			%cl.shoeSettings = ShoeMod_ClientSettings.getID();
+			%cl.shoeSettings.setName("");
+		}
+		return %ret;
+	}
+
+	function GameConnection::onClientLeaveGame(%cl)
+	{
+		%ret = parent::onClientLeaveGame(%cl);
+
+		if (isObject(%cl.shoeSettings))
+		{
+			%cl.shoeSettings.setName("ShoeMod_ClientSettings");
+			%cl.shoeSettings.save("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
+			//scheduled delete just in case changing the scriptobject name then deleting triggers the hard crash bug with finding object by name
+			%cl.shoeSettings.schedule(33, delete);
+		}
+
+		return %ret;
+	}
 };
 activatePackage(ShoeMod_Shoes);
 
@@ -212,7 +241,7 @@ function GameConnection::setCurrentShoes(%cl, %shoeName)
 		return 0;
 	}
 
-	$ShoeMod::CurrShoe_[%cl.bl_id] = %shoeName;
+	%cl.shoeSettings.currentShoes = %shoeName;
 }
 
 function GameConnection::wearShoes(%cl, %shoeName)
@@ -263,7 +292,7 @@ function GameConnection::getCurrentShoes(%cl)
 	}
 	else
 	{
-		return $ShoeMod::CurrShoe_[%cl.bl_id];
+		return %cl.shoeSettings.currentShoes;
 	}
 }
 

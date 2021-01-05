@@ -3,26 +3,19 @@ package ShoeMod_Customization
 {
 	function registerShoeScriptObjectVar(%scriptObj, %varName, %value)
 	{
-		if (%varName $= "nodes")
-		{
-			for (%i = 0; %i < getWordCount(%value); %i++)
-			{
-				$ShoeSet.nodeTable_[getWord(%value, %i)] = 1;
-			}
-		}
-		else if (%varName $= "color")
+		if (%varName $= "color")
 		{
 			%node = getWord(%value, 0);
 			%firstWord = getWord(%value, 1);
 			if (%firstWord + 0 !$= %firstWord)
 			{
 				//is a client color name
-				setObjectVariable(%node @ "DefaultColor", %firstWord);
+				setObjectVariable("DefaultColor_" @ %node, %firstWord);
 			}
 			else
 			{
 				//is a color vector
-				setObjectVariable(%node @ "DefaultColor", clampRGBColorToPercent(getWords(%value, 2, 4)));
+				setObjectVariable("DefaultColor_" @ %node, clampRGBColorToPercent(getWords(%value, 2, 4)));
 			}
 			return; //already set variable, do not need to call parent
 		}
@@ -35,11 +28,11 @@ package ShoeMod_Customization
 
 		if (isObject(%obj.lShoe))
 		{
-			applyShoeColors(%obj.lShoe, %cl);
+			applyShoeColors(%obj.lShoe, %shoeName, %cl);
 		}
 		if (isObject(%obj.rShoe))
 		{
-			applyShoeColors(%obj.rShoe, %cl);
+			applyShoeColors(%obj.rShoe, %shoeName, %cl);
 		}
 
 		return %ret;
@@ -52,29 +45,16 @@ activatePackage(ShoeMod_Customization);
 
 
 
-function registerShoeCustomizationVar(%varName)
+function getValidShoeNodeList(%shoeName)
 {
-	if (isFunction("RegisterPersistenceVar"))
-	{
-		RegisterPersistenceVar(%varName, false, "");
-	}
-}
-
-function getValidShoeNodeList(%db)
-{
-	%scriptObj = getShoeScriptObject(%db);
+	%scriptObj = getShoeScriptObject(%shoeName);
 	return %scriptObj.nodes;
 }
 
-function isShoeNodeValid(%db, %node)
+function isShoeNodeValid(%shoeName, %node)
 {
-	%validParts = getValidShoeNodeList(%db);
-	return strContainsWord(%db, %node);
-}
-
-function isShoeNodePresent(%node)
-{
-	return $ShoeSet.nodeTable_[%node];
+	%validParts = getValidShoeNodeList(%shoeName);
+	return strContainsWord(%validParts, %node);
 }
 
 function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
@@ -88,6 +68,36 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 	}
 
 	%cl.setShoeNodeColor(%node, %r SPC %g SPC %b);
+	%cl.saveShoeNodeColor(%node, %r SPC %g SPC %b);
+}
+
+function GameConnection::saveShoeNodeColor(%cl, %shoeName, %node, %color)
+{
+	%cl.shoeSettings.ShoeMod_[getSafeVariableName(%shoeName), %node, "Color"] = %color;
+}
+
+function GameConnection::loadShoeNodeColor(%cl, %shoeName, %node)
+{
+	%clientColors = "accentColor" SPC 
+					"chestColor" SPC 
+					"hatColor" SPC 
+					"headColor" SPC 
+					"hipColor" SPC 
+					"larm" SPC 
+					"larmColor" SPC 
+					"lhandColor" SPC 
+					"llegColor" SPC 
+					"packColor" SPC 
+					"rarmColor" SPC 
+					"rhandColor" SPC 
+					"rlegColor" SPC 
+					"secondPackColor";
+	%color = %cl.shoeSettings.ShoeMod_[getSafeVariableName(%shoeName), %node, "Color"];
+	if (getWordCount(%color) == 1 && strContainsWord(%clientColors, %color))
+	{
+		%color = getObjectVariable(%cl, %color);
+	}
+	return getWords(%color, 0, 2);
 }
 
 function GameConnection::setShoeNodeColor(%cl, %node, %color)
@@ -95,12 +105,13 @@ function GameConnection::setShoeNodeColor(%cl, %node, %color)
 	%color = clampRGBColorToPercent(%color);
 	%hex = hexFromRGB(%color);
 
-	%scriptObj = %cl.getCurrentShoes();
-
-	%cl.ShoeMod_[%node, "Color"] = %color SPC 1;
+	if (isObject(%pl = %cl.player))
+	{
+		%pl.setShoeNodeColor(%node, %color);
+	}
 }
 
-function Player::setShoePartColor(%pl, %node, %color)
+function Player::setShoeNodeColor(%pl, %node, %color)
 {
 	if (isObject(%pl.lShoe) && %pl.lShoe.isNodeVisible(%node))
 	{
@@ -112,7 +123,7 @@ function Player::setShoePartColor(%pl, %node, %color)
 	}
 }
 
-function AIPlayer::setShoePartColor(%obj, %node, %color)
+function AIPlayer::setShoeNodeColor(%obj, %node, %color)
 {
 	if (isObject(%pl.lShoe) && %pl.lShoe.isNodeVisible(%node))
 	{
@@ -129,7 +140,62 @@ function AIPlayer::setShoePartColor(%obj, %node, %color)
 
 
 
-function applyShoeColors(%shoeBot, %cl)
+function applyShoeColors(%shoeBot, %shoeName, %cl)
 {
+	%nodeList = getValidShoeNodeList(%shoeName);
+	%scriptObj = getShoeScriptObject(%shoeName);
+
+	for (%i = 0; %i < getWordCount(%nodeList); %i++)
+	{
+		%node = getWord(%nodeList, %i);
+		%color = %cl.loadShoeNodeColor(%shoeName, %node);
+		if (%color $= "")
+		{
+			%color = "1 1 1";
+		}
+		if (%shoeBot.isNodeVisible(%node))
+		{
+			%shoeBot.setNodeColor(%node, %color SPC 1);
+		}
+	}
+
+	if (%scriptObj.hasTransparency !$= "")
+	{
+		%shoeBot.startFade(0, 0, %scriptObj.hasTransparency);
+	}
+}
+
+function setShoeDefaultColors(%cl, %shoeName)
+{
+	%nodeList = getValidShoeNodeList(%shoeName);
+	%scriptObj = getShoeScriptObject(%shoeName);
 	
+	for (%i = 0; %i < getWordCount(%nodeList); %i++)
+	{
+		%node = getWord(%nodeList, %i);
+		if ((%color = %scriptObj.DefaultColor_[%node]) !$= ""
+			&& %cl.loadShoeNodeColor(%shoeName, %node) $= "")
+		{
+			%cl.saveShoeNodeColor(%shoeName, %node, %color);
+		}
+	}
+}
+
+function resetShoeColors(%cl, %shoeName)
+{
+	%nodeList = getValidShoeNodeList(%shoeName);
+	%scriptObj = getShoeScriptObject(%shoeName);
+	
+	for (%i = 0; %i < getWordCount(%nodeList); %i++)
+	{
+		%node = getWord(%nodeList, %i);
+		if ((%color = %scriptObj.DefaultColor_[%node]) !$= "")
+		{
+			%cl.saveShoeNodeColor(%shoeName, %node, %color);
+		}
+		else
+		{
+			%cl.saveShoeNodeColor(%shoeName, %node, "");
+		}
+	}
 }

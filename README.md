@@ -13,8 +13,9 @@ Parts:
 `deleteifpeg`
 `deleteifskirt`
 
-`defaultcolor nodename r g b`
-`defaultcolor nodename clientcolor`
+`color nodename r g b`
+`color nodename clientcolor`
+`hasTransparency`
 
 clientcolors:
 ```
