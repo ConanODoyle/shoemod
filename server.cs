@@ -5,7 +5,7 @@ exec("./lib/disableMountSound.cs");
 exec("./util/colorUtils.cs");
 exec("./util/getLastStrPos.cs");
 exec("./util/hexToInt.cs");
-exec("./util/objectVariable.cs");
+exec("./util/objectVariables.cs");
 exec("./util/strContains.cs");
 
 exec("./register.cs");
