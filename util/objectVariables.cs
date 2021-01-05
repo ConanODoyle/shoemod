@@ -71,3 +71,78 @@ function setObjectVariable(%obj, %varname, %value)
 		}
 	}
 }
+
+//assumes variable name provided is safe
+function getObjectVariable(%obj, %varname)
+{
+	%firstChar = getSubStr(%varname, 0, 1);
+	%rest = getSubStr(%varname, 1, 100);
+
+	if (strPos("ABCDEFGHIJKLMNOPQRSTUVWXYZ", %firstChar) < 0)
+	{
+		switch$ (%firstChar)
+		{
+			case "a": return %obj.a[%rest];
+			case "b": return %obj.b[%rest];
+			case "c": return %obj.c[%rest];
+			case "d": return %obj.d[%rest];
+			case "e": return %obj.e[%rest];
+			case "f": return %obj.f[%rest];
+			case "g": return %obj.g[%rest];
+			case "h": return %obj.h[%rest];
+			case "i": return %obj.i[%rest];
+			case "j": return %obj.j[%rest];
+			case "k": return %obj.k[%rest];
+			case "l": return %obj.l[%rest];
+			case "m": return %obj.m[%rest];
+			case "n": return %obj.n[%rest];
+			case "o": return %obj.o[%rest];
+			case "p": return %obj.p[%rest];
+			case "q": return %obj.q[%rest];
+			case "r": return %obj.r[%rest];
+			case "s": return %obj.s[%rest];
+			case "t": return %obj.t[%rest];
+			case "u": return %obj.u[%rest];
+			case "v": return %obj.v[%rest];
+			case "w": return %obj.w[%rest];
+			case "x": return %obj.x[%rest];
+			case "y": return %obj.y[%rest];
+			case "z": return %obj.z[%rest];
+			case "_": return %obj._[%rest];
+		}
+	}
+	else
+	{
+		switch$ (%firstChar)
+		{
+			case "A": return %obj.A[%rest];
+			case "B": return %obj.B[%rest];
+			case "C": return %obj.C[%rest];
+			case "D": return %obj.D[%rest];
+			case "E": return %obj.E[%rest];
+			case "F": return %obj.F[%rest];
+			case "G": return %obj.G[%rest];
+			case "H": return %obj.H[%rest];
+			case "I": return %obj.I[%rest];
+			case "J": return %obj.J[%rest];
+			case "K": return %obj.K[%rest];
+			case "L": return %obj.L[%rest];
+			case "M": return %obj.M[%rest];
+			case "N": return %obj.N[%rest];
+			case "O": return %obj.O[%rest];
+			case "P": return %obj.P[%rest];
+			case "Q": return %obj.Q[%rest];
+			case "R": return %obj.R[%rest];
+			case "S": return %obj.S[%rest];
+			case "T": return %obj.T[%rest];
+			case "U": return %obj.U[%rest];
+			case "V": return %obj.V[%rest];
+			case "W": return %obj.W[%rest];
+			case "X": return %obj.X[%rest];
+			case "Y": return %obj.Y[%rest];
+			case "Z": return %obj.Z[%rest];
+			case "_": return %obj._[%rest];
+		}
+	}
+	return "";
+}
