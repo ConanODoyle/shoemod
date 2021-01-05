@@ -7,23 +7,14 @@ package ShoeMod_Shoes
 			return;
 		}
 
+		ShoeMod_remountShoes(%obj);
+
 		return parent::onDisabled(%this, %obj, %state);
 	}
 
 	function Armor::onRemove(%this, %obj)
 	{
-		if (isObject(%obj.rShoe))
-		{
-			%obj.rShoe.delete();
-		}
-		if (isObject(%obj.lShoe))
-		{
-			%obj.lShoe.delete();
-		}
-		if (isObject(%obj.dummyBot))
-		{
-			%obj.dummyBot.delete();
-		}
+		ShoeMod_deleteShoes(%obj);
 
 		return parent::onRemove(%this, %obj, %state);
 	}
@@ -56,22 +47,10 @@ package ShoeMod_Shoes
 	{
 		%ret = parent::applyBodyParts(%cl);
 
-		//TODO: change to re-wear shoes
-		// if (isObject(%pl = %cl.player))
-		// {
-		// 	if (isObject(%pl.rShoe))
-		// 	{
-		// 		%pl.rShoe.delete();
-		// 	}
-		// 	if (isObject(%pl.lShoe))
-		// 	{
-		// 		%pl.lShoe.delete();
-		// 	}
-		// 	if (isObject(%pl.dummyBot))
-		// 	{
-		// 		%pl.dummyBot.delete();
-		// 	}
-		// }
+		if (isObject(%cl.player) && isRegisteredShoe(%cl.getCurrentShoes()))
+		{
+			ShoeMod_wearShoes(%cl.player, %cl.getCurrentShoes(), %cl);
+		}
 
 		return %ret;
 	}
@@ -80,18 +59,7 @@ package ShoeMod_Shoes
 	{
 		%ret = parent::onNewDatablock(%datablock, %obj);
 
-		if (isObject(%obj.dummyBot))
-		{
-			%obj.mountObject(%obj.dummyBot, 2);
-		}
-		if (isObject(%obj.rShoe))
-		{
-			%obj.mountObject(%obj.rShoe, 3);
-		}
-		if (isObject(%obj.lShoe))
-		{
-			%obj.mountObject(%obj.lShoe, 4);
-		}
+		ShoeMod_remountShoes(%obj);
 		
 		return %ret;
 	}
@@ -103,7 +71,23 @@ activatePackage(ShoeMod_Shoes);
 
 
 
-function ShoeMod_removeShoes(%obj, %cl)
+function ShoeMod_remountShoes(%obj)
+{
+	if (isObject(%obj.dummyBot))
+	{
+		%obj.mountObject(%obj.dummyBot, 2);
+	}
+	if (isObject(%obj.rShoe))
+	{
+		%obj.mountObject(%obj.rShoe, 3);
+	}
+	if (isObject(%obj.lShoe))
+	{
+		%obj.mountObject(%obj.lShoe, 4);
+	}
+}
+
+function ShoeMod_deleteShoes(%obj)
 {
 	if (isObject(%obj.rShoe))
 	{
@@ -117,6 +101,11 @@ function ShoeMod_removeShoes(%obj, %cl)
 	{
 		%obj.dummyBot.delete();
 	}
+}
+
+function ShoeMod_removeShoes(%obj, %cl)
+{
+	ShoeMod_deleteShoes(%obj);
 
 	if (%cl.player == %obj && isFunction(%cl.getClassName(), "applyBodyParts"))
 	{
@@ -282,11 +271,11 @@ function Player::getCurrentShoes(%pl)
 {
 	if (isObject(%pl.lShoe))
 	{
-		return getShoeScriptObject(%pl.lShoe.getDatablock());
+		return getShoeScriptObject(%pl.lShoe.getDatablock()).shoeName;
 	}
 	else if (isObject(%pl.rShoe))
 	{
-		return getShoeScriptObject(%pl.rShoe.getDatablock());
+		return getShoeScriptObject(%pl.rShoe.getDatablock()).shoeName;
 	}
 	else
 	{
@@ -298,11 +287,11 @@ function AIPlayer::getCurrentShoes(%pl)
 {
 	if (isObject(%pl.lShoe))
 	{
-		return getShoeScriptObject(%pl.lShoe.getDatablock());
+		return getShoeScriptObject(%pl.lShoe.getDatablock()).shoeName;
 	}
 	else if (isObject(%pl.rShoe))
 	{
-		return getShoeScriptObject(%pl.rShoe.getDatablock());
+		return getShoeScriptObject(%pl.rShoe.getDatablock()).shoeName;
 	}
 	else
 	{

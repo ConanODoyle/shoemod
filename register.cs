@@ -117,7 +117,7 @@ function parseShoeSettings(%scriptObj, %directory)
 	while (!%file.isEOF())
 	{
 		%line = trim(%file.readLine());
-		%varName = getWord(%line, 0);
+		%varName = getSafeVariableName(getWord(%line, 0));
 		registerShoeScriptObjectVar(%scriptObj, %varName, getWords(%line, 1, getWordCount(%line)));
 		%settings++;
 	}
@@ -131,7 +131,6 @@ function parseShoeSettings(%scriptObj, %directory)
 
 function registerShoeScriptObjectVar(%scriptObj, %varname, %value)
 {
-	%varname = getSafeVariableName(%varname);
 	setObjectVariable(%scriptObj, %varname, %value);
 }
 

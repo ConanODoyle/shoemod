@@ -3,12 +3,28 @@ package ShoeMod_Customization
 {
 	function registerShoeScriptObjectVar(%scriptObj, %varName, %value)
 	{
-		if (getWord(%value, 0) $= "nodes")
+		if (%varName $= "nodes")
 		{
-			for (%i = 1; %i < getWordCount(%value); %i++)
+			for (%i = 0; %i < getWordCount(%value); %i++)
 			{
 				$ShoeSet.nodeTable_[getWord(%value, %i)] = 1;
 			}
+		}
+		else if (%varName $= "color")
+		{
+			%node = getWord(%value, 0);
+			%firstWord = getWord(%value, 1);
+			if (%firstWord + 0 !$= %firstWord)
+			{
+				//is a client color name
+				setObjectVariable(%node @ "DefaultColor", %firstWord);
+			}
+			else
+			{
+				//is a color vector
+				setObjectVariable(%node @ "DefaultColor", clampRGBColorToPercent(getWords(%value, 2, 4)));
+			}
+			return; //already set variable, do not need to call parent
 		}
 		return parent::registerShoeScriptObjectVar(%scriptObj, %varName, %value);
 	}
@@ -61,7 +77,7 @@ function isShoeNodePresent(%node)
 	return $ShoeSet.nodeTable_[%node];
 }
 
-function serverCmdSetShoeColor(%cl, %node, %r, %g, %b)
+function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 {
 	//default to paintcan color if no color specified
 	if (%r $= "")
@@ -71,27 +87,17 @@ function serverCmdSetShoeColor(%cl, %node, %r, %g, %b)
 		%r = getWord(%color, 0); %g = getWord(%color, 1); %b = getWord(%color, 2);
 	}
 
-	%cl.setShoeColor(%node, %r, %g, %b);
+	%cl.setShoeNodeColor(%node, %r SPC %g SPC %b);
 }
 
-function GameConnection::setShoeColor(%cl, %node, %r, %g, %b)
+function GameConnection::setShoeNodeColor(%cl, %node, %color)
 {
-	if (%r > 1 || %g > 1 || %b > 1)
-	{
-		%r /= 255; %g /= 255; %b /= 255;
-	}
+	%color = clampRGBColorToPercent(%color);
+	%hex = hexFromRGB(%color);
 
 	%scriptObj = %cl.getCurrentShoes();
 
-	%r = getMax(getMin(%r, 1), 0);
-	%g = getMax(getMin(%g, 1), 0);
-	%b = getMax(getMin(%b, 1), 0);
-
-	%rh = intToHex(mFloor(%r + 0.5));
-	%bh = intToHex(mFloor(%g + 0.5));
-	%gh = intToHex(mFloor(%b + 0.5));
-
-	%cl.ShoeMod_[%node, "Color"] = %r SPC %g SPC %b SPC 1;
+	%cl.ShoeMod_[%node, "Color"] = %color SPC 1;
 }
 
 function Player::setShoePartColor(%pl, %node, %color)
