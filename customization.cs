@@ -57,20 +57,6 @@ function isShoeNodeValid(%shoeName, %node)
 	return strContainsWord(%validParts, %node);
 }
 
-function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
-{
-	//default to paintcan color if no color specified
-	if (%r $= "")
-	{
-		%color = getColorIDTable(%cl.currentColor);
-		
-		%r = getWord(%color, 0); %g = getWord(%color, 1); %b = getWord(%color, 2);
-	}
-
-	%cl.setShoeNodeColor(%node, %r SPC %g SPC %b);
-	%cl.saveShoeNodeColor(%node, %r SPC %g SPC %b);
-}
-
 function GameConnection::saveShoeNodeColor(%cl, %shoeName, %node, %color)
 {
 	%cl.shoeSettings.ShoeMod_[getSafeVariableName(%shoeName), %node, "Color"] = %color;
@@ -205,4 +191,53 @@ function resetShoeColors(%cl, %shoeName)
 			%cl.saveShoeNodeColor(%shoeName, %node, "");
 		}
 	}
+}
+
+
+
+
+
+
+function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
+{
+	//default to paintcan color if no color specified
+	if (%r $= "")
+	{
+		%color = getColorIDTable(%cl.currentColor);
+		
+		%r = getWord(%color, 0); %g = getWord(%color, 1); %b = getWord(%color, 2);
+	}
+
+	%shoeName = %cl.getCurrentShoes(%cl);
+
+	if (%shoeName $= "" || !isRegisteredShoe(%shoeName))
+	{
+		messageClient(%cl, '', "You aren't wearing any shoes! Use /shoes to equip a pair.");
+		return;
+	}
+	else if (!sShoeNodeValid(%shoeName, %node))
+	{
+		messageClient(%cl, '', "Your current shoe '" @ %shoeName @ "' does not have that node!");
+		messageClient(%cl, '', "\c2Valid nodes: ");
+		%validList = getValidShoeNodeList(%shoeName);
+		for (%i = 0; %i < getWordCount(%validList); %i++)
+		{
+			%sublist = trim(%sublist SPC getWord(%validList));
+			if (strLen(%sublist) > 150)
+			{
+				%sublist = strReplace(%sublist, " ", ", ")
+				messageClient(%cl, "\c6" @ %sublist);
+				%sublist = "";
+			}
+		}
+		if (getWordCount(%sublist) > 0)
+		{
+			%sublist = strReplace(%sublist, " ", ", ")
+			messageClient(%cl, "\c6" @ %sublist);
+		}
+		return;
+	}
+
+	%cl.setShoeNodeColor(%node, %r SPC %g SPC %b);
+	%cl.saveShoeNodeColor(%node, %r SPC %g SPC %b);
 }
