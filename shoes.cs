@@ -68,17 +68,8 @@ package ShoeMod_Shoes
 	{
 		%ret = parent::onClientEnterGame(%cl);
 
-		if (isFile("config/server/ShoeMod/" @ %cl.bl_id @ ".cs"))
-		{
-			//TODO: Replace with manual file loading as suggested by Eagle
-			exec("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
-			%cl.shoeSettings = ShoeMod_ClientSettings.getID();
-			%cl.shoeSettings.setName("");
-		}
-		else
-		{
-			%cl.shoeSettings = new ScriptObject();
-		}
+		%cl.importShoeSettings();
+
 		return %ret;
 	}
 
@@ -86,13 +77,7 @@ package ShoeMod_Shoes
 	{
 		%ret = parent::onClientLeaveGame(%cl);
 
-		if (isObject(%cl.shoeSettings))
-		{
-			%cl.shoeSettings.setName("ShoeMod_ClientSettings");
-			%cl.shoeSettings.save("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
-			//scheduled delete just in case changing the scriptobject name then deleting triggers the hard crash bug with finding object by name
-			%cl.shoeSettings.schedule(33, delete);
-		}
+		%cl.exportShoeSettings();
 
 		return %ret;
 	}
@@ -329,5 +314,43 @@ function AIPlayer::getCurrentShoes(%pl)
 	else
 	{
 		return 0;
+	}
+}
+
+function GameConnection::exportShoeSettings(%cl)
+{
+	if (isObject(%cl.shoeSettings))
+	{
+		%cl.shoeSettings.setName("ShoeMod_ClientSettings");
+		%cl.shoeSettings.save("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
+		//scheduled delete just in case changing the scriptobject name then deleting triggers the hard crash bug with finding object by name
+		%cl.shoeSettings.schedule(33, delete);
+	}
+}
+
+function GameConnection::importShoeSettings(%cl)
+{
+	%cl.shoeSettings = new ScriptObject();
+	if (isFile("config/server/ShoeMod/" @ %cl.bl_id @ ".cs"))
+	{
+		//TODO: Replace with manual file loading as suggested by Eagle
+		// exec("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
+		%file = new FileObject();
+		%file.openForRead("config/server/ShoeMod" @ %cl.bl_id @ ".cs");
+
+		while (!%file.isEOF())
+		{
+			%line = %file.readLine();
+			if (%strPos(%line, "    ") == 0) //variable
+			{
+				%line = trim(%line);
+				%varName = getWord(%line, 0);
+				%rest = removeWord(removeWord(%line, 0), 0);
+				setObjectVariable(%cl.shoeSettings, %varName, %rest);
+			}
+		}
+
+		%file.close();
+		%file.delete();
 	}
 }
