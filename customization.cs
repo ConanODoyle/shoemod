@@ -10,12 +10,12 @@ package ShoeMod_Customization
 			if (%firstWord + 0 !$= %firstWord)
 			{
 				//is a client color name
-				setObjectVariable("DefaultColor_" @ %node, %firstWord);
+				setObjectVariable(%scriptObj, "DefaultColor_" @ %node, %firstWord);
 			}
 			else
 			{
 				//is a color vector
-				setObjectVariable("DefaultColor_" @ %node, clampRGBColorToPercent(getWords(%value, 2, 4)));
+				setObjectVariable(%scriptObj, "DefaultColor_" @ %node, clampRGBColorToPercent(getWords(%value, 1, 3)));
 			}
 			return; //already set variable, do not need to call parent
 		}
@@ -145,6 +145,12 @@ function applyShoeColors(%shoeBot, %shoeName, %cl)
 	%nodeList = getValidShoeNodeList(%shoeName);
 	%scriptObj = getShoeScriptObject(%shoeName);
 
+	if (!%cl.shoeSettings.hasAppliedDefault_[getSafeVariableName(%shoeName)])
+	{
+		setShoeDefaultColors(%cl, %shoeName);
+		%cl.shoeSettings.hasAppliedDefault_[getSafeVariableName(%shoeName)] = 1;
+	}
+
 	for (%i = 0; %i < getWordCount(%nodeList); %i++)
 	{
 		%node = getWord(%nodeList, %i);
@@ -176,6 +182,7 @@ function setShoeDefaultColors(%cl, %shoeName)
 		if ((%color = %scriptObj.DefaultColor_[%node]) !$= ""
 			&& %cl.loadShoeNodeColor(%shoeName, %node) $= "")
 		{
+			echo("Color " @ %node @ ": " @ %color);
 			%cl.saveShoeNodeColor(%shoeName, %node, %color);
 		}
 	}

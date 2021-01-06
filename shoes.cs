@@ -75,6 +75,10 @@ package ShoeMod_Shoes
 			%cl.shoeSettings = ShoeMod_ClientSettings.getID();
 			%cl.shoeSettings.setName("");
 		}
+		else
+		{
+			%cl.shoeSettings = new ScriptObject();
+		}
 		return %ret;
 	}
 

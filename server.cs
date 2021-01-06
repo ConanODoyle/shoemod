@@ -17,6 +17,7 @@ function serverCmdReExecShoeMod(%cl)
 {
 	if (%cl.isSuperAdmin)
 	{
+		setmodpaths(getmodpaths());
 		exec("Add-ons/Server_ShoeMod/server.cs");
 	}
 }

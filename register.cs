@@ -118,7 +118,11 @@ function parseShoeSettings(%scriptObj, %directory)
 	{
 		%line = trim(%file.readLine());
 		%varName = getSafeVariableName(getWord(%line, 0));
-		registerShoeScriptObjectVar(%scriptObj, %varName, getWords(%line, 1, getWordCount(%line)));
+		%rest = getWords(%line, 1, getWordCount(%line));
+		if (%varName !$= "" && %rest !$= "")
+		{
+			registerShoeScriptObjectVar(%scriptObj, %varName, %rest);
+		}
 		%settings++;
 	}
 
@@ -218,7 +222,7 @@ function ShoeMod_registerSearchPattern(%string)
 		}
 	}
 
-	$ShoeMod::SearchPattern[$ShoeMod::SearchPatternCount] = %string;
+	$ShoeMod::SearchPattern[$ShoeMod::SearchPatternCount + 0] = %string;
 	$ShoeMod::SearchPatternCount++;
 
 	echo("Registered ShoeMod search pattern \"" @ %string @ "\"");
@@ -228,7 +232,7 @@ function ShoeMod_registerAllShoes()
 {
 	echo("Registering shoes...");
 	ShoeMod_registerSearchPattern("Add-ons/ShoeMod_*/*.dts");
-	ShoeMod_registerSearchPattern("Add-ons/ShoeMod_*/*/*.dts");
+	// ShoeMod_registerSearchPattern("Add-ons/ShoeMod_*/*/*.dts"); //first pattern already covers cases of multiple slashes
 
 	$ShoeSet.clear();
 
@@ -238,6 +242,10 @@ function ShoeMod_registerAllShoes()
 		%checkForEnabled = (getSubStr(%pattern, 0, 16) $= "Add-ons/ShoeMod_");
 
 		echo("Checking pattern: " @ %pattern);
+		if (%checkForEnabled)
+		{
+			echo("    Add-on must be enabled to be registered");
+		}
 		for (%dir = findFirstfile(%pattern); %dir !$= ""; %dir = findNextFile(%pattern))
 		{
 			%lastSlash = getLastStrPos(%dir, "/");
@@ -253,7 +261,7 @@ function ShoeMod_registerAllShoes()
 			}
 			%visitedDirectory[getSafeVariableName(%directory)] = 1;
 
-			echo("Checking directory: " @ %directory);
+			// echo("    Checking directory: " @ %directory @ " file: " @ %dir);
 			if (isRegisteredShoe(%shoeName))
 			{
 				//re-register shoe settings only, in case this is manually called to update shoes
@@ -265,18 +273,18 @@ function ShoeMod_registerAllShoes()
 			if (%checkForEnabled)
 			{
 				%addonName = getSubStr(%dir, 8, strPos(%dir, "/", 9) - 8);
-				if ($ADDON__[%addonName] < 0)
+				if ($ADDON__[%addonName] <= 0)
 				{
 					if (!%echo[%addonName])
 					{
-						echo("    Skipping registering " @ %addonName @ " - add-on is disabled");
+						echo("        Skipping registering " @ %addonName @ " - add-on is disabled");
 					}
 					%echo[%addonName] = 1;
 					continue;
 				}
 			}
 			ShoeMod_registerShoe(%directory, %shoeName);
-			echo("    Registered '" @ %shoeName @ "' shoe in " @ %directory);
+			echo("        Registered '" @ %shoeName @ "' shoe in " @ %directory);
 			%registeredCount++;
 		}
 	}
