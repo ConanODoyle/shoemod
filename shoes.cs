@@ -67,20 +67,34 @@ package ShoeMod_Shoes
 
 	function GameConnection::onClientEnterGame(%cl)
 	{
-		%ret = parent::onClientEnterGame(%cl);
+		if (%cl.bl_id !$= "")
+		{
+			%cl.importShoeSettings();
+		}
 
-		%cl.importShoeSettings();
+		return parent::onClientEnterGame(%cl);
+	}
+
+	function GameConnection::spawnPlayer(%cl)
+	{
+		%ret = parent::spawnPlayer(%cl);
+
+		if (isRegisteredShoe(%cl.shoeSettings.currentShoes))
+		{
+			%cl.wearShoes(%cl.shoeSettings.currentShoes);
+		}
 
 		return %ret;
 	}
 
-	function GameConnection::onClientLeaveGame(%cl)
+	function GameConnection::onRemove(%cl)
 	{
-		%ret = parent::onClientLeaveGame(%cl);
+		if (isObject(%cl.shoeSettings))
+		{
+			%cl.exportShoeSettings();
+		}
 
-		%cl.exportShoeSettings();
-
-		return %ret;
+		return parent::onRemove(%cl);
 	}
 };
 activatePackage(ShoeMod_Shoes);
@@ -146,14 +160,6 @@ function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 		return 0;
 	}
 
-	if (isObject(%obj.rShoe))
-	{
-		%obj.rShoe.delete();
-	}
-	if (isObject(%obj.lShoe))
-	{
-		%obj.lShoe.delete();
-	}
 	if (!isObject(%obj.dummyBot))
 	{
 		%dummyBot = new AIPlayer(Shoes) {dataBlock = %ldb;};
@@ -162,17 +168,26 @@ function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 		%dummyBot.hideNode("ALL");
 		%obj.dummyBot = %dummyBot;
 	}
+	if (!isObject(%obj.rShoe))
+	{
+		%rShoe = new AIPlayer(Shoes) {dataBlock = %rdb;};
+		%rShoe.kill();
+	}
+	if (!isObject(%obj.lShoe))
+	{
+		%lShoe = new AIPlayer(Shoes) {dataBlock = %ldb;};
+		%lShoe.kill();
+	}
 
-	%rShoe = new AIPlayer(Shoes) {dataBlock = %rdb;};
-	%lShoe = new AIPlayer(Shoes) {dataBlock = %ldb;};
+	%rShoe.setDatablock(%rdb);
+	%lShoe.setDatablock(%ldb);
 
 	%rShoe.setScale(%obj.getScale());
 	%lShoe.setScale(%obj.getScale());
 
-	%rShoe.kill();
-	%lShoe.kill();
-
 	%obj.unmountObject(%obj.dummyBot);
+	%obj.unmountObject(%rShoe);
+	%obj.unmountObject(%lShoe);
 	%obj.mountObject(%obj.dummyBot, 2);
 	%obj.mountObject(%rShoe, 3);
 	%obj.mountObject(%lShoe, 4);
@@ -227,7 +242,7 @@ function validateAvatarLegs(%obj, %shoeName, %cl)
 
 function GameConnection::setCurrentShoes(%cl, %shoeName)
 {
-	if (!isRegisteredShoe(%shoeName))
+	if (!isRegisteredShoe(%shoeName) && %shoeName !$= "None")
 	{
 		return 0;
 	}
@@ -237,12 +252,20 @@ function GameConnection::setCurrentShoes(%cl, %shoeName)
 
 function GameConnection::wearShoes(%cl, %shoeName)
 {
-	if (!isObject(%pl = %cl.player) || !isRegisteredShoe(%shoeName))
+	if (!isObject(%pl = %cl.player) || 
+		(!isRegisteredShoe(%shoeName) && %shoeName !$= "None"))
 	{
 		return 0;
 	}
 
-	ShoeMod_wearShoes(%pl, %shoeName, %cl);
+	if (%shoeName $= "None")
+	{
+		%cl.unwearShoes();
+	}
+	else
+	{
+		ShoeMod_wearShoes(%pl, %shoeName, %cl);
+	}
 }
 
 function Player::wearShoes(%pl, %shoeName)
@@ -273,6 +296,11 @@ function Player::unwearShoes(%pl)
 function AIPlayer::unwearShoes(%pl)
 {
 	ShoeMod_removeShoes(%pl, %pl.client);
+}
+
+function GameConnection::getSavedShoes(%cl)
+{
+	return %cl.shoeSettings.currentShoes;
 }
 
 function GameConnection::getCurrentShoes(%cl)
