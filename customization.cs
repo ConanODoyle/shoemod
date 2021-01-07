@@ -8,14 +8,10 @@ package ShoeMod_Customization
 						"hatColor" SPC 
 						"headColor" SPC 
 						"hipColor" SPC 
-						"larm" SPC 
-						"larmColor" SPC 
-						"lhandColor" SPC 
-						"llegColor" SPC 
+						"armColor" SPC 
+						"handColor" SPC 
+						"legColor" SPC 
 						"packColor" SPC 
-						"rarmColor" SPC 
-						"rhandColor" SPC 
-						"rlegColor" SPC 
 						"secondPackColor";
 		if (%varName $= "color")
 		{
@@ -76,26 +72,31 @@ function GameConnection::saveShoeNodeColor(%cl, %shoeName, %node, %color)
 	%cl.shoeSettings.ShoeMod_[getSafeVariableName(%shoeName), %node, "Color"] = %color;
 }
 
-function GameConnection::loadShoeNodeColor(%cl, %shoeName, %node)
+function GameConnection::loadShoeNodeColor(%cl, %shoeName, %node, %lr)
 {
 	%clientColors = "accentColor" SPC 
 					"chestColor" SPC 
 					"hatColor" SPC 
 					"headColor" SPC 
 					"hipColor" SPC 
-					"larm" SPC 
-					"larmColor" SPC 
-					"lhandColor" SPC 
-					"llegColor" SPC 
+					"armColor" SPC 
+					"handColor" SPC 
+					"legColor" SPC 
 					"packColor" SPC 
-					"rarmColor" SPC 
-					"rhandColor" SPC 
-					"rlegColor" SPC 
 					"secondPackColor";
 	%color = %cl.shoeSettings.ShoeMod_[getSafeVariableName(%shoeName), %node, "Color"];
 	if (getWordCount(%color) == 1 && strContainsWord(%clientColors, %color))
 	{
-		%color = getObjectVariable(%cl, %color);
+		//sided node color, ensure side exists
+		if (%color $= "armColor" || %color $= "legColor" || %color $= "handColor")
+		{
+			%lr = %lr $= "" ? "l" : %lr;
+		}
+		else //non-sided node color
+		{
+			%lr = "";
+		}
+		%color = getObjectVariable(%cl, %lr @ %color);
 	}
 	return getWords(%color, 0, 2);
 }
@@ -154,7 +155,7 @@ function applyShoeColors(%shoeBot, %shoeName, %cl)
 	for (%i = 0; %i < getWordCount(%nodeList); %i++)
 	{
 		%node = getWord(%nodeList, %i);
-		%color = %cl.loadShoeNodeColor(%shoeName, %node);
+		%color = %cl.loadShoeNodeColor(%shoeName, %node, %shoeBot.side);
 		if (%color $= "")
 		{
 			%color = "1 1 1 1";

@@ -24,14 +24,10 @@ clientcolors:
   hatColor
   headColor
   hipColor
-  larm
-  larmColor
-  lhandColor
-  llegColor
   packColor
-  rarmColor
-  rhandColor
-  rlegColor
+  armColor //uses same side the shoe is on
+  handColor //uses same side the shoe is on
+  legColor //uses same side the shoe is on
   secondPackColor
   ```
 

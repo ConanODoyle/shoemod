@@ -162,7 +162,7 @@ function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 
 	if (!isObject(%obj.dummyBot))
 	{
-		%dummyBot = new AIPlayer(Shoes) {dataBlock = %ldb;};
+		%dummyBot = new AIPlayer(Shoes) {dataBlock = %ldb; side = "l"; };
 		%dummyBot.kill();
 		%dummyBot.setScale(%obj.getScale());
 		%dummyBot.hideNode("ALL");
@@ -170,14 +170,19 @@ function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 	}
 	if (!isObject(%obj.rShoe))
 	{
-		%rShoe = new AIPlayer(Shoes) {dataBlock = %rdb;};
+		%rShoe = new AIPlayer(Shoes) { dataBlock = %rdb; side = "r"; };
 		%rShoe.kill();
+		%obj.rShoe = %rShoe;
 	}
 	if (!isObject(%obj.lShoe))
 	{
-		%lShoe = new AIPlayer(Shoes) {dataBlock = %ldb;};
+		%lShoe = new AIPlayer(Shoes) { dataBlock = %ldb; side = "l"; };
 		%lShoe.kill();
+		%obj.lShoe = %lShoe;
 	}
+
+	%rShoe = %obj.rShoe;
+	%lShoe = %obj.lShoe;
 
 	%rShoe.setDatablock(%rdb);
 	%lShoe.setDatablock(%ldb);
@@ -192,8 +197,6 @@ function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 	%obj.mountObject(%rShoe, 3);
 	%obj.mountObject(%lShoe, 4);
 
-	%obj.rShoe = %rShoe;
-	%obj.lShoe = %lShoe;
 
 	validateAvatarLegs(%obj, %shoeName, %cl);
 	
