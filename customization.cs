@@ -4,19 +4,19 @@ package ShoeMod_Customization
 	function registerShoeScriptObjectVar(%scriptObj, %varName, %value)
 	{
 		%clientColors = "accentColor" SPC 
-					"chestColor" SPC 
-					"hatColor" SPC 
-					"headColor" SPC 
-					"hipColor" SPC 
-					"larm" SPC 
-					"larmColor" SPC 
-					"lhandColor" SPC 
-					"llegColor" SPC 
-					"packColor" SPC 
-					"rarmColor" SPC 
-					"rhandColor" SPC 
-					"rlegColor" SPC 
-					"secondPackColor";
+						"chestColor" SPC 
+						"hatColor" SPC 
+						"headColor" SPC 
+						"hipColor" SPC 
+						"larm" SPC 
+						"larmColor" SPC 
+						"lhandColor" SPC 
+						"llegColor" SPC 
+						"packColor" SPC 
+						"rarmColor" SPC 
+						"rhandColor" SPC 
+						"rlegColor" SPC 
+						"secondPackColor";
 		if (%varName $= "color")
 		{
 			%node = getWord(%value, 0);
@@ -182,7 +182,6 @@ function setShoeDefaultColors(%cl, %shoeName)
 		if ((%color = %scriptObj.DefaultColor_[%node]) !$= ""
 			&& %cl.loadShoeNodeColor(%shoeName, %node) $= "")
 		{
-			echo("Color " @ %node @ ": " @ %color);
 			%cl.saveShoeNodeColor(%shoeName, %node, %color);
 		}
 	}

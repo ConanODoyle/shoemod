@@ -332,22 +332,28 @@ function GameConnection::exportShoeSettings(%cl)
 
 function GameConnection::importShoeSettings(%cl)
 {
+	if (isObject(%cl.shoeSettings))
+	{
+		%cl.shoeSettings.delete();
+	}
 	%cl.shoeSettings = new ScriptObject();
 	if (isFile("config/server/ShoeMod/" @ %cl.bl_id @ ".cs"))
 	{
 		//TODO: Replace with manual file loading as suggested by Eagle
 		// exec("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
 		%file = new FileObject();
-		%file.openForRead("config/server/ShoeMod" @ %cl.bl_id @ ".cs");
+		%file.openForRead("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
 
 		while (!%file.isEOF())
 		{
 			%line = %file.readLine();
-			if (strPos(%line, "    ") == 0) //variable
+			if (strPos(%line, "      ") == 0) //variables start with six spaces indentation
 			{
 				%line = trim(%line);
 				%varName = getWord(%line, 0);
 				%rest = removeWord(removeWord(%line, 0), 0);
+				//remove the " and ";
+				%rest = getSubStr(%rest, 1, strLen(%rest) - 3);
 				setObjectVariable(%cl.shoeSettings, %varName, %rest);
 			}
 		}
