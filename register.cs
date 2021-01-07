@@ -129,7 +129,7 @@ function parseShoeSettings(%scriptObj, %directory)
 	%file.close();
 	%file.delete();
 
-	echo("    Parsed " @ %settings @ " settings");
+	echo("            Parsed " @ %settings @ " settings");
 	return %scriptObj;
 }
 
@@ -261,9 +261,11 @@ function ShoeMod_registerAllShoes()
 			}
 			%visitedDirectory[getSafeVariableName(%directory)] = 1;
 
+			echo("        Registering '" @ %shoeName @ "' in " @ %directory);
 			// echo("    Checking directory: " @ %directory @ " file: " @ %dir);
 			if (isRegisteredShoe(%shoeName))
 			{
+				echo("            Already registered '" @ %shoeName @ "'! Updating settings...");
 				//re-register shoe settings only, in case this is manually called to update shoes
 				ShoeMod_registerShoeSettings(%directory, %shoeName);
 				continue;
@@ -277,14 +279,13 @@ function ShoeMod_registerAllShoes()
 				{
 					if (!%echo[%addonName])
 					{
-						echo("        Skipping registering " @ %addonName @ " - add-on is disabled");
+						echo("            Skipping registering " @ %addonName @ " - add-on is disabled");
 					}
 					%echo[%addonName] = 1;
 					continue;
 				}
 			}
 			ShoeMod_registerShoe(%directory, %shoeName);
-			echo("        Registered '" @ %shoeName @ "' shoe in " @ %directory);
 			%registeredCount++;
 		}
 	}

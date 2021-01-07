@@ -7,9 +7,10 @@ package ShoeMod_Shoes
 			return;
 		}
 
+		%ret = parent::onDisabled(%this, %obj, %state);
 		ShoeMod_remountShoes(%obj);
 
-		return parent::onDisabled(%this, %obj, %state);
+		return %ret;
 	}
 
 	function Armor::onRemove(%this, %obj)
@@ -159,7 +160,6 @@ function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 		%dummyBot.kill();
 		%dummyBot.setScale(%obj.getScale());
 		%dummyBot.hideNode("ALL");
-		%obj.mountObject(%dummyBot, 2);
 		%obj.dummyBot = %dummyBot;
 	}
 
@@ -172,6 +172,8 @@ function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 	%rShoe.kill();
 	%lShoe.kill();
 
+	%obj.unmountObject(%obj.dummyBot);
+	%obj.mountObject(%obj.dummyBot, 2);
 	%obj.mountObject(%rShoe, 3);
 	%obj.mountObject(%lShoe, 4);
 
@@ -341,7 +343,7 @@ function GameConnection::importShoeSettings(%cl)
 		while (!%file.isEOF())
 		{
 			%line = %file.readLine();
-			if (%strPos(%line, "    ") == 0) //variable
+			if (strPos(%line, "    ") == 0) //variable
 			{
 				%line = trim(%line);
 				%varName = getWord(%line, 0);

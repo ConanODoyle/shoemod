@@ -3,11 +3,25 @@ package ShoeMod_Customization
 {
 	function registerShoeScriptObjectVar(%scriptObj, %varName, %value)
 	{
+		%clientColors = "accentColor" SPC 
+					"chestColor" SPC 
+					"hatColor" SPC 
+					"headColor" SPC 
+					"hipColor" SPC 
+					"larm" SPC 
+					"larmColor" SPC 
+					"lhandColor" SPC 
+					"llegColor" SPC 
+					"packColor" SPC 
+					"rarmColor" SPC 
+					"rhandColor" SPC 
+					"rlegColor" SPC 
+					"secondPackColor";
 		if (%varName $= "color")
 		{
 			%node = getWord(%value, 0);
 			%firstWord = getWord(%value, 1);
-			if (%firstWord + 0 !$= %firstWord)
+			if (strContainsWord(%clientColors, %firstWord))
 			{
 				//is a client color name
 				setObjectVariable(%scriptObj, "DefaultColor_" @ %node, %firstWord);
@@ -88,7 +102,7 @@ function GameConnection::loadShoeNodeColor(%cl, %shoeName, %node)
 
 function GameConnection::setShoeNodeColor(%cl, %node, %color)
 {
-	%color = clampRGBColorToPercent(%color);
+	%color = clampRGBColorToPercent(%color) SPC 1;
 	%hex = hexFromRGB(%color);
 
 	if (isObject(%pl = %cl.player))
@@ -143,7 +157,7 @@ function applyShoeColors(%shoeBot, %shoeName, %cl)
 		%color = %cl.loadShoeNodeColor(%shoeName, %node);
 		if (%color $= "")
 		{
-			%color = "1 1 1";
+			%color = "1 1 1 1";
 		}
 		if (%shoeBot.isNodeVisible(%node))
 		{
@@ -215,29 +229,35 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 		messageClient(%cl, '', "You aren't wearing any shoes! Use /shoes to equip a pair.");
 		return;
 	}
-	else if (!sShoeNodeValid(%shoeName, %node))
+	else if (!isShoeNodeValid(%shoeName, %node))
 	{
 		messageClient(%cl, '', "Your current shoe '" @ %shoeName @ "' does not have that node!");
-		messageClient(%cl, '', "\c2Valid nodes: ");
+		%prefix = "\c3Valid nodes: ";
 		%validList = getValidShoeNodeList(%shoeName);
 		for (%i = 0; %i < getWordCount(%validList); %i++)
 		{
-			%sublist = trim(%sublist SPC getWord(%validList));
-			if (strLen(%sublist) > 150)
+			%sublist = trim(%sublist SPC getWord(%validList, %i));
+			if (strLen(%sublist) > 60)
 			{
-				%sublist = strReplace(%sublist, " ", ", ")
-				messageClient(%cl, "\c6" @ %sublist);
+				%sublist = strReplace(%sublist, " ", ", ");
+				messageClient(%cl, '', %prefix @ "\c6" @ %sublist);
+				%prefix = "    ";
 				%sublist = "";
 			}
 		}
 		if (getWordCount(%sublist) > 0)
 		{
-			%sublist = strReplace(%sublist, " ", ", ")
-			messageClient(%cl, "\c6" @ %sublist);
+			%sublist = strReplace(%sublist, " ", ", ");
+			messageClient(%cl, '', %prefix @ "\c6" @ %sublist);
 		}
 		return;
 	}
 
-	%cl.setShoeNodeColor(%node, %r SPC %g SPC %b);
-	%cl.saveShoeNodeColor(%node, %r SPC %g SPC %b);
+	%color = %r SPC %g SPC %b;
+	%color = clampRGBColorToPercent(%color);
+	%hex = hexFromRGB(%color);
+
+	%cl.setShoeNodeColor(%node, %color);
+	%cl.saveShoeNodeColor(%shoeName, %node, %color);
+	messageClient(%cl, '', "\c3Set shoe node '\c6" @ %node @ "\c3' to <color:" @ %hex @ ">[" @ %color @ "]\c3!");
 }
