@@ -393,3 +393,29 @@ function GameConnection::importShoeSettings(%cl)
 		%file.delete();
 	}
 }
+
+function Player::setShoes(%pl, %shoeName)
+{
+	%pl.wearShoes(%shoeName);
+}
+
+function AIPlayer::setShoes(%pl, %shoeName)
+{
+	%pl.wearShoes(%shoeName);
+}
+
+registerOutputEvent("Bot", "setShoes", "string 200 150");
+registerOutputEvent("Player", "setShoes", "string 200 150");
+
+function Player::removeShoes(%pl, %shoeName)
+{
+	%pl.unwearShoes(%shoeName);
+}
+
+function AIPlayer::removeShoes(%pl, %shoeName)
+{
+	%pl.unwearShoes(%shoeName);
+}
+
+registerOutputEvent("Bot", "removeShoes");
+registerOutputEvent("Player", "removeShoes");

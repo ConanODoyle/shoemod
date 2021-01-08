@@ -114,6 +114,11 @@ function GameConnection::setShoeNodeColor(%cl, %node, %color)
 
 function Player::setShoeNodeColor(%pl, %node, %color)
 {
+	if (getWordCount(%color) == 3)
+	{
+		%color = %color SPC 1;
+	}
+
 	if (isObject(%pl.lShoe) && %pl.lShoe.isNodeVisible(%node))
 	{
 		%pl.lShoe.setNodeColor(%node, %color);
@@ -126,13 +131,18 @@ function Player::setShoeNodeColor(%pl, %node, %color)
 
 function AIPlayer::setShoeNodeColor(%obj, %node, %color)
 {
-	if (isObject(%pl.lShoe) && %pl.lShoe.isNodeVisible(%node))
+	if (getWordCount(%color) == 3)
 	{
-		%pl.lShoe.setNodeColor(%node, %color);
+		%color = %color SPC 1;
 	}
-	if (isObject(%pl.rShoe) && %pl.rShoe.isNodeVisible(%node))
+	
+	if (isObject(%obj.lShoe) && %obj.lShoe.isNodeVisible(%node))
 	{
-		%pl.rShoe.setNodeColor(%node, %color);
+		%obj.lShoe.setNodeColor(%node, %color);
+	}
+	if (isObject(%obj.rShoe) && %obj.rShoe.isNodeVisible(%node))
+	{
+		%obj.rShoe.setNodeColor(%node, %color);
 	}
 }
 
@@ -155,8 +165,16 @@ function applyShoeColors(%shoeBot, %shoeName, %cl)
 	for (%i = 0; %i < getWordCount(%nodeList); %i++)
 	{
 		%node = getWord(%nodeList, %i);
-		%color = %cl.loadShoeNodeColor(%shoeName, %node, %shoeBot.side);
-		if (%color $= "")
+		if (!isObject(%cl))
+		{
+			%color = %scriptObj.DefaultColor_[%node] SPC 1;
+		}
+		else if (%cl.getClassName() $= "GameConnection")
+		{
+			%color = %cl.loadShoeNodeColor(%shoeName, %node, %shoeBot.side);
+		}
+
+		if (getWordCount(%color) != 4)
 		{
 			%color = "1 1 1 1";
 		}
@@ -180,7 +198,8 @@ function setShoeDefaultColors(%cl, %shoeName)
 	for (%i = 0; %i < getWordCount(%nodeList); %i++)
 	{
 		%node = getWord(%nodeList, %i);
-		if ((%color = %scriptObj.DefaultColor_[%node]) !$= ""
+		if (isObject(%cl) 
+			&& (%color = %scriptObj.DefaultColor_[%node]) !$= ""
 			&& %cl.loadShoeNodeColor(%shoeName, %node) $= "")
 		{
 			%cl.saveShoeNodeColor(%shoeName, %node, %color);
@@ -285,3 +304,6 @@ function serverCmdResetShoeColors(%cl)
 		%cl.wearShoes(%shoeName);
 	}
 }
+
+registerOutputEvent("Bot", "setShoeNodeColor", "string 200 100" TAB "string 200 150");
+registerOutputEvent("Player", "setShoeNodeColor", "string 200 100" TAB "string 200 150");
