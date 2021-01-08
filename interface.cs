@@ -40,6 +40,11 @@ function serverCmdShoe(%cl, %a, %b, %c, %d, %e, %f, %g)
 	}
 }
 
+function serverCmdShoes(%cl, %a, %b, %c, %d, %e, %f, %g)
+{
+	serverCmdShoe(%cl, %a, %b, %c, %d, %e, %f, %g);
+}
+
 function openShoeMenu(%cl)
 {
 	%menu = getCenterprintShoeMenu(%cl);
