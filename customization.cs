@@ -135,7 +135,7 @@ function AIPlayer::setShoeNodeColor(%obj, %node, %color)
 	{
 		%color = %color SPC 1;
 	}
-	
+
 	if (isObject(%obj.lShoe) && %obj.lShoe.isNodeVisible(%node))
 	{
 		%obj.lShoe.setNodeColor(%node, %color);
@@ -171,7 +171,7 @@ function applyShoeColors(%shoeBot, %shoeName, %cl)
 		}
 		else if (%cl.getClassName() $= "GameConnection")
 		{
-			%color = %cl.loadShoeNodeColor(%shoeName, %node, %shoeBot.side);
+			%color = %cl.loadShoeNodeColor(%shoeName, %node, %shoeBot.side) SPC "1";
 		}
 
 		if (getWordCount(%color) != 4)

@@ -48,7 +48,7 @@ package ShoeMod_Shoes
 	{
 		%ret = parent::applyBodyParts(%cl);
 
-		if (isObject(%cl.player) && isRegisteredShoe(%cl.getCurrentShoes()))
+		if (isObject(%cl.player) && isRegisteredShoe(%cl.getCurrentShoes()) && !%cl.skipWearShoes)
 		{
 			ShoeMod_wearShoes(%cl.player, %cl.getCurrentShoes(), %cl);
 		}
@@ -235,6 +235,12 @@ function validateAvatarLegs(%obj, %shoeName, %cl)
 		{
 			%obj.unhideNode(getWord(%scriptObj.showNodeList, %i));
 		}
+	}
+	if (getWordCount(%scriptObj.showNodeList) == 0 && getWordCount(%scriptObj.hideNodeList) == 0)
+	{
+		%cl.skipWearShoes = 1;
+		%cl.applyBodyParts();
+		%cl.skipWearShoes = 0;
 	}
 }
 
