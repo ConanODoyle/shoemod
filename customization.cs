@@ -231,7 +231,16 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 	}
 	else if (!isShoeNodeValid(%shoeName, %node))
 	{
-		messageClient(%cl, '', "Your current shoe '" @ %shoeName @ "' does not have that node!");
+		if (%node !$= "")
+		{
+			messageClient(%cl, '', "Your current shoe '" @ %shoeName @ "' does not have that node!");
+		}
+		else
+		{
+			messageClient(%cl, '', "\c6Usage: \c3/setShoeNodeColor [nodeName] [r] [g] [b]");
+			messageClient(%cl, '', "\c5If you omit the color values, your current paint color will be used");
+			messageClient(%cl, '', "\c5/resetShoeColors to reset your current shoes' colors to default");
+		}
 		%prefix = "\c3Valid nodes: ";
 		%validList = getValidShoeNodeList(%shoeName);
 		for (%i = 0; %i < getWordCount(%validList); %i++)
@@ -260,4 +269,19 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 	%cl.setShoeNodeColor(%node, %color);
 	%cl.saveShoeNodeColor(%shoeName, %node, %color);
 	messageClient(%cl, '', "\c3Set shoe node '\c6" @ %node @ "\c3' to <color:" @ %hex @ ">[" @ %color @ "]\c3!");
+}
+
+function serverCmdResetShoeColors(%cl)
+{
+	%shoeName = %cl.getCurrentShoes();
+	if (!isRegisteredShoe(%shoeName))
+	{
+		messageClient(%cl, '', "You aren't wearing any shoes!");
+	}
+	else
+	{
+		resetShoeColors(%cl, %shoeName);
+		messageClient(%cl, '', "\c5'" @ %shoeName @ "' shoe colors have been reset!");
+		%cl.wearShoes(%shoeName);
+	}
 }

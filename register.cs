@@ -202,6 +202,11 @@ function ShoeMod_registerShoeSettings(%directory, %shoeName)
 	%scriptObj.directory = %directory;
 
 	parseShoeSettings(%scriptObj, %directory);
+
+	if (!$ShoeSet.isMember(%scriptObj))
+	{
+		$ShoeSet.add(%scriptObj);
+	}
 	return %scriptObj;
 }
 

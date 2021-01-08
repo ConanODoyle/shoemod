@@ -11,6 +11,7 @@ exec("./util/strContains.cs");
 exec("./register.cs");
 exec("./shoes.cs");
 exec("./customization.cs");
+exec("./interface.cs");
 
 //development
 function serverCmdReExecShoeMod(%cl)

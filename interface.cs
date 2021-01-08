@@ -11,8 +11,17 @@ package ShoeMod_Interface
 
 	function GameConnection::exitCenterprintMenu(%cl)
 	{
-		%cl.wearShoes(%cl.getSavedShoes())
+		%cl.wearShoes(%cl.getSavedShoes());
 		return parent::exitCenterprintMenu(%cl);
+	}
+
+	function GameConnection::onRemove(%cl)
+	{
+		if (isObject(%cl.shoeMenu))
+		{
+			%cl.shoeMenu.delete();
+		}
+		return parent::onRemove(%cl);
 	}
 };
 activatePackage(ShoeMod_Interface);
@@ -33,38 +42,49 @@ function serverCmdShoe(%cl, %a, %b, %c, %d, %e, %f, %g)
 
 function openShoeMenu(%cl)
 {
-	%menu = getCenterprintShoeMenu();
+	%menu = getCenterprintShoeMenu(%cl);
 
+	%shoe = %cl.getCurrentShoes();
 
+	%cl.startCenterprintMenu(%menu);
+	%cl.displayCenterprintMenu(%menu.menuOptionIDX[getSafeVariableName(%shoe)]);
 }
 
-function getCenterprintShoeMenu()
+function getCenterprintShoeMenu(%cl)
 {
-	if (!isObject($ShoeSet.centerprintMenu))
+	if (!isObject(%cl.shoeMenu))
 	{
-		$ShoeSet.centerprintMenu = new ScriptObject(ShoeMenu)
+		%cl.shoeMenu = new ScriptObject(ShoeMenu)
 		{
 			isCenterprintMenu = 1;
-			menuName = "-Enter to confirm-";
+
+			menuOption[0] = "None";
+			menuFunction[0] = "confirmShoe";
+			menuOptionCount = 1;
 		};
 	}
 
-	if ($ShoeSet.centerprintMenu.lastValidatedCount == $ShoeSet.getCount())
+	if (%cl.shoeMenu.lastValidatedCount == $ShoeSet.getCount())
 	{
-		return $ShoeSet.centerprintMenu;
+		return %cl.shoeMenu;
 	}
 	
-	for (%i = 0; %i < $ShoeSet.centerprintMenu.menuOptionCount; %i++)
+	for (%i = 1; %i < %cl.shoeMenu.menuOptionCount; %i++)
 	{
-		%ShoeSet.centerprintMenu.menuOption[%i] = "";
+		%cl.shoeMenu.menuOption[%i] = "";
 	}
 
 	for (%i = 0; %i < $ShoeSet.getCount(); %i++)
 	{
-		$ShoeSet.centerprintMenu.menuOption[%i] = $ShoeSet.getObject(%i).shoeName;
-		$ShoeSet.centerprintMenu.menuFunction[%i] = "confirmShoe";
+		%cl.shoeMenu.menuOption[%i + 1] = $ShoeSet.getObject(%i).shoeName;
+		%cl.shoeMenu.menuFunction[%i + 1] = "confirmShoe";
+		%cl.shoeMenu.menuOptionIDX[getSafeVariableName($ShoeSet.getObject(%i).shoeName)] = %i + 1;
 	}
-	$ShoeSet.centerprintMenu.lastValidatedCount = %i;
+	%cl.shoeMenu.menuName = "-Enter to confirm- <br>\c5Use /setShoeNodeColor to recolor shoes";
+	%cl.shoeMenu.menuOptionCount = %i + 1;
+	%cl.shoeMenu.lastValidatedCount = %i + 1;
+
+	return %cl.shoeMenu;
 }
 
 function confirmShoe(%cl, %menu, %option)
