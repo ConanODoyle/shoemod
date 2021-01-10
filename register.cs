@@ -96,11 +96,11 @@ function getShoeScriptObject(%shoeName)
 	{
 		return $ShoeSet.shoeTable_[%safeShoeName];	
 	}
-	else if (!isObject("ShoeMod_" @ %safeShoeName))
+	else if (!isObject("ShoeMod_" @ %safeShoeName @ "Data"))
 	{
-		return new ScriptObject("ShoeMod_" @ %safeShoeName);
+		return new ScriptObject("ShoeMod_" @ %safeShoeName @ "Data");
 	}
-	return ("ShoeMod_" @ %safeShoeName).getID();
+	return ("ShoeMod_" @ %safeShoeName @ "Data").getID();
 }
 
 function parseShoeSettings(%scriptObj, %directory)

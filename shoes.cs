@@ -87,14 +87,14 @@ package ShoeMod_Shoes
 		return %ret;
 	}
 
-	function GameConnection::onRemove(%cl)
+	function GameConnection::onDrop(%cl)
 	{
 		if (isObject(%cl.shoeSettings))
 		{
 			%cl.exportShoeSettings();
 		}
 
-		return parent::onRemove(%cl);
+		return parent::onDrop(%cl);
 	}
 };
 activatePackage(ShoeMod_Shoes);
@@ -360,6 +360,7 @@ function GameConnection::exportShoeSettings(%cl)
 {
 	if (isObject(%cl.shoeSettings))
 	{
+		echo("--- EXPORTING SHOE SETTINGS " @ %cl.name);
 		%cl.shoeSettings.setName("ShoeMod_ClientSettings");
 		%cl.shoeSettings.save("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
 		//scheduled delete just in case changing the scriptobject name then deleting triggers the hard crash bug with finding object by name
@@ -376,7 +377,7 @@ function GameConnection::importShoeSettings(%cl)
 	%cl.shoeSettings = new ScriptObject();
 	if (isFile("config/server/ShoeMod/" @ %cl.bl_id @ ".cs"))
 	{
-		//TODO: Replace with manual file loading as suggested by Eagle
+		echo("--- IMPORTING SHOE SETTINGS " @ %cl.name);
 		// exec("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");
 		%file = new FileObject();
 		%file.openForRead("config/server/ShoeMod/" @ %cl.bl_id @ ".cs");

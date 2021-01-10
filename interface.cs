@@ -87,7 +87,7 @@ function getCenterprintShoeMenu(%cl)
 	}
 	%cl.shoeMenu.menuName = "-Enter to confirm- <br>\c5Use /setShoeNodeColor to recolor shoes";
 	%cl.shoeMenu.menuOptionCount = %i + 1;
-	%cl.shoeMenu.lastValidatedCount = %i + 1;
+	%cl.shoeMenu.lastValidatedCount = $ShoeSet.getCount();
 
 	return %cl.shoeMenu;
 }
