@@ -34,6 +34,11 @@ function createPlayerDatablock(%datablockName, %shapeFileDir)
 		"emap = 0;" SPC
 		"className = \"Armor\";" SPC
 		"shapeFile = \"" @ %shapeFileDir @ "\";" SPC
+		"jetEmitter = playerJetEmitter;" SPC
+		"jetGroundEmitter = playerJetGroundEmitter;" SPC
+		"splashEmitter[0] = PlayerFoamDropletsEmitter;" SPC
+		"splashEmitter[1] = PlayerFoamEmitter;" SPC
+		"splashEmitter[2] = PlayerBubbleEmitter;" SPC
 	"};";
 
 	eval(%evalString);
