@@ -7,10 +7,16 @@ package ShoeMod_Shoes
 			return;
 		}
 
-		%ret = parent::onDisabled(%this, %obj, %state);
-		ShoeMod_remountShoes(%obj);
+		return parent::onDisabled(%this, %obj, %state);
+	}
 
-		return %ret;
+	function Armor::doDismount(%this, %rider, %forced)
+	{
+		if (%this.isShoeDB)
+		{
+			return;
+		}
+		return parent::doDismount(%this, %rider, %forced);
 	}
 
 	function Armor::onRemove(%this, %obj)
@@ -65,14 +71,14 @@ package ShoeMod_Shoes
 		return %ret;
 	}
 
-	function GameConnection::onClientEnterGame(%cl)
+	function GameConnection::AutoAdminCheck(%cl)
 	{
 		if (%cl.bl_id !$= "")
 		{
 			%cl.importShoeSettings();
 		}
 
-		return parent::onClientEnterGame(%cl);
+		return parent::AutoAdminCheck(%cl);
 	}
 
 	function GameConnection::spawnPlayer(%cl)

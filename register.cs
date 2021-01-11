@@ -75,6 +75,8 @@ function createShoeDatablock(%datablockName, %shapeFileDir)
 	%db.crouchBoundingBox = vectorScale("20 20 20", 4);
 	%db.keepOnDeath = 1;
 
+	%db.isShoeDB = 1;
+
 	%db.canJet = 0;
 	%db.runForce = 0;
 	%db.jumpForce = 0;
