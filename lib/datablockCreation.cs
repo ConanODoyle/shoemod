@@ -32,7 +32,7 @@ function createPlayerDatablock(%datablockName, %shapeFileDir)
 	"datablock PlayerData(" @ %datablockName @ ")" SPC
 	"{" SPC
 		"emap = 0;" SPC
-		"className = \"Armor\";" SPC
+		"className = Armor;" SPC
 		"shapeFile = \"" @ %shapeFileDir @ "\";" SPC
 		"jetEmitter = playerJetEmitter;" SPC
 		"jetGroundEmitter = playerJetGroundEmitter;" SPC

@@ -107,7 +107,7 @@ function parseShoeSettings(%scriptObj, %directory)
 {
 	if (!isFile(%directory @ "settings.txt"))
 	{
-		warn("    No settings.txt file found, skipping...");
+		warn("            No settings.txt file found, skipping...");
 		return;
 	}
 
@@ -266,17 +266,6 @@ function ShoeMod_registerAllShoes()
 			}
 			%visitedDirectory[getSafeVariableName(%directory)] = 1;
 
-			echo("        Registering '" @ %shoeName @ "' in " @ %directory);
-			// echo("    Checking directory: " @ %directory @ " file: " @ %dir);
-			if (isRegisteredShoe(%shoeName))
-			{
-				echo("            Already registered '" @ %shoeName @ "'! Updating settings...");
-				//re-register shoe settings only, in case this is manually called to update shoes
-				ShoeMod_registerShoeSettings(%directory, %shoeName);
-				continue;
-			}
-
-			//check if enabled, if it is a normal shoemod
 			if (%checkForEnabled)
 			{
 				%addonName = getSubStr(%dir, 8, strPos(%dir, "/", 9) - 8);
@@ -290,6 +279,19 @@ function ShoeMod_registerAllShoes()
 					continue;
 				}
 			}
+
+			echo("        Registering '" @ %shoeName @ "' in " @ %directory);
+			// echo("    Checking directory: " @ %directory @ " file: " @ %dir);
+			if (isRegisteredShoe(%shoeName))
+			{
+				echo("            Already registered '" @ %shoeName @ "'! Updating settings...");
+				//re-register shoe settings only, in case this is manually called to update shoes
+				ShoeMod_registerShoeSettings(%directory, %shoeName);
+				continue;
+			}
+
+			//check if enabled, if it is a normal shoemod
+			
 			ShoeMod_registerShoe(%directory, %shoeName);
 			%registeredCount++;
 		}
@@ -297,4 +299,4 @@ function ShoeMod_registerAllShoes()
 	echo("Registered " @ %registeredCount + 0 @ " new shoes");
 }
 
-// schedule(1, 0, ShoeMod_registerAllShoes);
+schedule(1, 0, ShoeMod_registerAllShoes);

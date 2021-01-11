@@ -403,11 +403,21 @@ function GameConnection::importShoeSettings(%cl)
 
 function Player::setShoes(%pl, %shoeName)
 {
+	if (%pl.getCurrentShoes() $= %shoeName)
+	{
+		return;
+	}
+
 	%pl.wearShoes(%shoeName);
 }
 
 function AIPlayer::setShoes(%pl, %shoeName)
 {
+	if (%pl.getCurrentShoes() $= %shoeName)
+	{
+		return;
+	}
+	
 	%pl.wearShoes(%shoeName);
 }
 
