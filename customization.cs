@@ -240,6 +240,15 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 		
 		%r = getWord(%color, 0); %g = getWord(%color, 1); %b = getWord(%color, 2);
 	}
+	else if (strLen(%r) == 6)
+	{
+		//hex code support
+		%rHex = getSubStr(%r, 0, 2);
+		%gHex = getSubStr(%r, 2, 2);
+		%bHex = getSubStr(%r, 4, 2);
+		talk(%rHex SPC %gHex SPC %bHex);
+		%r = hexToInt(%rHex); %g = hexToInt(%gHex); %b = hexToInt(%bHex);
+	}
 
 	%shoeName = %cl.getCurrentShoes(%cl);
 
@@ -256,7 +265,7 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 		}
 		else
 		{
-			messageClient(%cl, '', "\c6Usage: \c3/setShoeNodeColor [nodeName] [r] [g] [b]");
+			messageClient(%cl, '', "\c6Usage: \c3/setShoeNodeColor [nodeName] [r] [g] [b] \c6OR \c3/setShoeNodeColor [nodeName] [hexCode]");
 			messageClient(%cl, '', "\c5If you omit the color values, your current paint color will be used");
 			messageClient(%cl, '', "\c5/resetShoeColors to reset your current shoes' colors to default");
 		}
@@ -287,7 +296,7 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 
 	%cl.setShoeNodeColor(%node, %color);
 	%cl.saveShoeNodeColor(%shoeName, %node, %color);
-	messageClient(%cl, '', "\c3Set shoe node '\c6" @ %node @ "\c3' to <color:" @ %hex @ ">[" @ %color @ "]\c3!");
+	messageClient(%cl, '', "\c3Set shoe node '\c6" @ %node @ "\c3' to <color:" @ %hex @ ">[" @ %hex @ "]\c3!");
 }
 
 function serverCmdResetShoeColors(%cl)
