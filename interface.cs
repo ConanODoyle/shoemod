@@ -30,6 +30,21 @@ function serverCmdShoe(%cl, %a, %b, %c, %d, %e, %f, %g)
 {
 	%shoeName = trim(%a SPC %b SPC %c SPC %d SPC %e SPC %f SPC %g);
 
+	//prefs checks
+	if ($Pref::Server::ShoeMod::ForceRandom)
+	{
+		messageClient(%cl, '', "\c2Force random shoes is enabled. You cannot remove or change your shoes.");
+		%shoeName = "Random";
+		%cl.setCurrentShoes(%shoeName);
+		return; //do not want to allow people to `/shoe random` continuously to get the shoes they want
+	}
+	else if ((%registered = isRegisteredShoe(%shoeName)) && !%cl.ownsShoe(%shoeName) && !$Pref::Server::ShoeMod::ShoeAccess)
+	{
+		messageClient(%cl, '', "\c2You do not own a pair of these shoes!");
+		%shoeName = ""; //sends the player to shoe menu to select a pair
+	}
+
+
 	if (%shoeName !$= "None" && %shoeName !$= "Random" && !isRegisteredShoe(%shoeName))
 	{
 		openShoeMenu(%cl);
