@@ -29,7 +29,8 @@ activatePackage(ShoeMod_Interface);
 function serverCmdShoe(%cl, %a, %b, %c, %d, %e, %f, %g)
 {
 	%shoeName = trim(%a SPC %b SPC %c SPC %d SPC %e SPC %f SPC %g);
-	if (!isRegisteredShoe(%shoeName) && %shoeName !$= "None")
+
+	if (%shoeName !$= "None" && %shoeName !$= "Random" && !isRegisteredShoe(%shoeName))
 	{
 		openShoeMenu(%cl);
 	}
@@ -65,11 +66,13 @@ function getCenterprintShoeMenu(%cl)
 
 			menuOption[0] = "None";
 			menuFunction[0] = "confirmShoe";
-			menuOptionCount = 1;
+			menuOption[1] = "Random";
+			menuFunction[1] = "confirmShoe";
+			menuOptionCount = 2;
 		};
 	}
 
-	if (%cl.shoeMenu.lastValidatedCount == $ShoeSet.getCount())
+	if (%cl.shoeMenu.lastValidatedTime > ((getSimTime() - 200 | 0) | 0))
 	{
 		return %cl.shoeMenu;
 	}
@@ -81,13 +84,13 @@ function getCenterprintShoeMenu(%cl)
 
 	for (%i = 0; %i < $ShoeSet.getCount(); %i++)
 	{
-		%cl.shoeMenu.menuOption[%i + 1] = $ShoeSet.getObject(%i).shoeName;
-		%cl.shoeMenu.menuFunction[%i + 1] = "confirmShoe";
-		%cl.shoeMenu.menuOptionIDX[getSafeVariableName($ShoeSet.getObject(%i).shoeName)] = %i + 1;
+		%cl.shoeMenu.menuOption[%i + 2] = $ShoeSet.getObject(%i).shoeName;
+		%cl.shoeMenu.menuFunction[%i + 2] = "confirmShoe";
+		%cl.shoeMenu.menuOptionIDX[getSafeVariableName($ShoeSet.getObject(%i).shoeName)] = %i + 2;
 	}
 	%cl.shoeMenu.menuName = "-Enter to confirm- <br>\c5Use /setShoeNodeColor to recolor shoes";
-	%cl.shoeMenu.menuOptionCount = %i + 1;
-	%cl.shoeMenu.lastValidatedCount = $ShoeSet.getCount();
+	%cl.shoeMenu.menuOptionCount = %i + 2;
+	%cl.shoeMenu.lastValidatedTime = getSimTime() | 0s;
 
 	return %cl.shoeMenu;
 }

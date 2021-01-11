@@ -110,6 +110,57 @@ activatePackage(ShoeMod_Shoes);
 
 
 
+function getRandomShoe(%obj)
+{
+	%settings = isObject(%obj.shoeSettings) ? %obj.shoeSettings : %obj.client.shoeSettings;
+	if (!isObject(%settings))
+	{
+		if ($ShoeSet.getCount() <= 0)
+		{
+			return "";
+		}
+		else
+		{
+			return $ShoeSet.getObject(getRandom($ShoeSet.getCount() - 1)).shoeName;
+		}
+	}
+	else
+	{
+		//select from all available shoes if access is enabled or force random shoes is on
+		if ($Pref::Server::ShoeMod::ShoeAccess)
+		{
+			return $ShoeSet.getObject(getRandom($ShoeSet.getCount() - 1)).shoeName;
+		}
+		else //select from shoes player owns
+		{
+			for (%i = 0; %i < %settings.ownedShoeListCount; %i++)
+			{
+				%set = %set SPC %i;
+			}
+			%set = trim(%set);
+
+			while (getWordCount(%set) > 0)
+			{
+				%idx = getRandom(getWordCount(%set) - 1);
+				%select = getWord(%set, %idx);
+				%set = removeWord(%select %idx);
+
+				%shoeName = getField(%settings.ownedShoeList[%select], 0);
+				%count = getField(%settings.ownedShoeList[%select], 1);
+				if (%count <= 0)
+				{
+					continue;
+				}
+				else if (isRegisteredShoe(%shoeName))
+				{
+					return %shoeName;
+				}
+			}
+		}
+	}
+	return "";
+}
+
 function ShoeMod_remountShoes(%obj)
 {
 	if (isObject(%obj.dummyBot))
@@ -154,6 +205,16 @@ function ShoeMod_removeShoes(%obj, %cl)
 
 function ShoeMod_wearShoes(%obj, %shoeName, %cl)
 {
+	if (%shoeName $= "Random")
+	{
+		%shoeName = getRandomShoe(%cl);
+	}
+
+	if (%shoeName $= "")
+	{
+		return 0;
+	}
+
 	%safeShoeName = getSafeVariableName(%shoeName);
 	%scriptObj = getShoeScriptObject(%shoeName);
 
@@ -360,6 +421,30 @@ function AIPlayer::getCurrentShoes(%pl)
 	{
 		return 0;
 	}
+}
+
+function GameConnection::addOwnedShoe(%cl, %shoeName)
+{
+	if (!isObject(%cl.shoeSettings))
+	{
+		return 0;
+	}
+
+	for (%i = 0; %i < %cl.shoeSettings.ownedShoeListCount; %i++)
+	{
+		%select = %cl.shoeSettings.ownedShoeList[%i];
+		%shoeName = getField(%select, 0);
+		%shoeCount = getField(%select, 1);
+
+		if (%shoeName $= %shoeName)
+		{
+			%cl.shoeSettings.ownedShoeList[%i] = %shoeName TAB (%shoeCount + 1);
+			return 1;
+		}
+	}
+	//shoe not in list, append
+	%cl.shoeSettings.ownedShoeList[%i] = %shoeName TAB 1;
+	return 1;
 }
 
 function GameConnection::exportShoeSettings(%cl)
