@@ -36,6 +36,7 @@ package ShoeMod_Customization
 	{
 		%ret = parent::ShoeMod_wearShoes(%obj, %shoeName, %cl);
 
+		%shoeName = %obj.getCurrentShoes();
 		if (isObject(%obj.lShoe))
 		{
 			applyShoeColors(%obj.lShoe, %shoeName, %cl);
@@ -297,6 +298,11 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 	%cl.setShoeNodeColor(%node, %color);
 	%cl.saveShoeNodeColor(%shoeName, %node, %color);
 	messageClient(%cl, '', "\c3Set shoe node '\c6" @ %node @ "\c3' to <color:" @ %hex @ ">[" @ %hex @ "]\c3!");
+}
+
+function serverCmdSetShoesNodeColor(%cl, %node, %r, %g, %b)
+{
+	serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b);
 }
 
 function serverCmdResetShoeColors(%cl)

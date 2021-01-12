@@ -1,3 +1,4 @@
+//has dependencies in owning.cs
 package ShoeMod_Shoes
 {
 	function Armor::onDisabled(%this, %obj, %state)
@@ -66,7 +67,7 @@ package ShoeMod_Shoes
 	{
 		%ret = parent::onNewDatablock(%datablock, %obj);
 
-		ShoeMod_remountShoes(%obj);
+		// ShoeMod_remountShoes(%obj);
 		
 		return %ret;
 	}
@@ -85,9 +86,17 @@ package ShoeMod_Shoes
 	{
 		%ret = parent::spawnPlayer(%cl);
 
-		if (isRegisteredShoe(%cl.shoeSettings.currentShoes))
+		if ($Pref::Server::ShoeMod::ForceRandom || %cl.getSavedShoes() $= "Random")
 		{
-			%cl.wearShoes(%cl.shoeSettings.currentShoes);
+			%cl.wearShoes("Random");
+		}
+		else if (isRegisteredShoe(%cl.getSavedShoes()))
+		{
+			if (!$Pref::Server::ShoeMod::ShoeAccess && !%cl.ownsShoe(%cl.getSavedShoes()))
+			{
+				return %ret;
+			}
+			%cl.wearShoes(%cl.getSavedShoes());
 		}
 
 		return %ret;
@@ -126,7 +135,7 @@ function getRandomShoe(%obj)
 	}
 	else
 	{
-		//select from all available shoes if access is enabled or force random shoes is on
+		//select from all available shoes if access is enabled
 		if ($Pref::Server::ShoeMod::ShoeAccess)
 		{
 			return $ShoeSet.getObject(getRandom($ShoeSet.getCount() - 1)).shoeName;
@@ -143,7 +152,7 @@ function getRandomShoe(%obj)
 			{
 				%idx = getRandom(getWordCount(%set) - 1);
 				%select = getWord(%set, %idx);
-				%set = removeWord(%select %idx);
+				%set = removeWord(%select, %idx);
 
 				%shoeName = getField(%settings.ownedShoeList[%select], 0);
 				%count = getField(%settings.ownedShoeList[%select], 1);
@@ -318,7 +327,7 @@ function validateAvatarLegs(%obj, %shoeName, %cl)
 
 function GameConnection::setCurrentShoes(%cl, %shoeName)
 {
-	if (!isRegisteredShoe(%shoeName) && %shoeName !$= "None")
+	if (!isRegisteredShoe(%shoeName) && %shoeName !$= "None" && %shoeName !$= "Random")
 	{
 		return 0;
 	}
@@ -329,7 +338,7 @@ function GameConnection::setCurrentShoes(%cl, %shoeName)
 function GameConnection::wearShoes(%cl, %shoeName)
 {
 	if (!isObject(%pl = %cl.player) || 
-		(!isRegisteredShoe(%shoeName) && %shoeName !$= "None"))
+		(!isRegisteredShoe(%shoeName) && %shoeName !$= "None" && %shoeName !$= "Random"))
 	{
 		return 0;
 	}
@@ -423,30 +432,6 @@ function AIPlayer::getCurrentShoes(%pl)
 	}
 }
 
-function GameConnection::addOwnedShoe(%cl, %shoeName)
-{
-	if (!isObject(%cl.shoeSettings))
-	{
-		return 0;
-	}
-
-	for (%i = 0; %i < %cl.shoeSettings.ownedShoeListCount; %i++)
-	{
-		%select = %cl.shoeSettings.ownedShoeList[%i];
-		%shoeName = getField(%select, 0);
-		%shoeCount = getField(%select, 1);
-
-		if (%shoeName $= %shoeName)
-		{
-			%cl.shoeSettings.ownedShoeList[%i] = %shoeName TAB (%shoeCount + 1);
-			return 1;
-		}
-	}
-	//shoe not in list, append
-	%cl.shoeSettings.ownedShoeList[%i] = %shoeName TAB 1;
-	return 1;
-}
-
 function GameConnection::exportShoeSettings(%cl)
 {
 	if (isObject(%cl.shoeSettings))
@@ -527,3 +512,39 @@ function AIPlayer::removeShoes(%pl, %shoeName)
 
 registerOutputEvent("Bot", "removeShoes");
 registerOutputEvent("Player", "removeShoes");
+
+
+
+
+
+
+function serverCmdListShoes(%cl)
+{
+	if (!%cl.isAdmin)
+	{
+		return;
+	}
+
+	messageClient(%cl, '', "\c4List of all shoes:");
+	for (%i = 0; %i < $ShoeSet.getCount(); %i++)
+	{
+		%subList = %subList TAB $ShoeSet.getObject(%i).shoeName;
+		if (strLen(%subList) > 50)
+		{
+			%subList = strReplace(trim(%subList), "\t", " | ");
+			messageClient(%cl, '', "\c6" @ %subList);
+			%subList = "";
+		}
+	}
+	if (strLen(%subList) > 0)
+	{
+		%subList = strReplace(trim(%subList), "\t", " | ");
+		messageClient(%cl, '', "\c6" @ %subList);
+		%subList = "";
+	}
+}
+
+function serverCmdListShoe(%cl)
+{
+	serverCmdListShoes(%cl);
+}
