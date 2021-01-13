@@ -1,0 +1,3 @@
+Shoemod
+By Conan
+A modular shoe support addon like Hatmod!

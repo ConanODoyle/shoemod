@@ -23,7 +23,15 @@ package ShoeMod_Interface
 		{
 			return parent::exitCenterprintMenu(%cl);
 		}
-		%cl.wearShoes(%cl.getSavedShoes());
+
+		if (!$Pref::Server::ShoeMod::ShoeAccess && !%cl.ownsShoe(%cl.getSavedShoes()))
+		{
+			%cl.wearShoes("None");
+		}
+		else
+		{
+			%cl.wearShoes(%cl.getSavedShoes());
+		}
 		stopRandomShoeLoop(%cl);
 		return parent::exitCenterprintMenu(%cl);
 	}
