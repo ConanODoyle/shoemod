@@ -88,13 +88,15 @@ function createShoeDatablock(%datablockName, %shapeFileDir)
 
 function getShoeScriptObject(%shoeName)
 {
-	%safeShoeName = getSafeVariableName(%shoeName);
 	//support passing in a shoe datablock
 	if (isObject(%shoeName) && %shoeName.getClassName() $= "PlayerData")
 	{
 		return %shoeName.shoeScriptObj;
 	}
-	else if (isObject($ShoeSet.shoeTable_[%safeShoeName]))
+	
+	%safeShoeName = getSafeVariableName(%shoeName);
+	
+	if (isObject($ShoeSet.shoeTable_[%safeShoeName]))
 	{
 		return $ShoeSet.shoeTable_[%safeShoeName];	
 	}
@@ -110,7 +112,7 @@ function parseShoeSettings(%scriptObj, %directory)
 	if (!isFile(%directory @ "settings.txt"))
 	{
 		warn("            No settings.txt file found, skipping...");
-		return;
+		return 0;
 	}
 
 	%file = new FileObject();

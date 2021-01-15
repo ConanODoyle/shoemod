@@ -285,17 +285,17 @@ function validateAvatarLegs(%obj, %shoeName, %cl)
 
 	if (%scriptObj.deleteIfShoe)
 	{
-		if (%cl.lleg == 0) { %obj.lShoe.delete(); }
-		if (%cl.rleg == 0) { %obj.rShoe.delete(); }
+		if (%obj.isNodeVisible("lShoe")) { %obj.lShoe.delete(); }
+		if (%obj.isNodeVisible("rShoe")) { %obj.rShoe.delete(); }
 	}
 	if (%scriptObj.deleteIfPeg)
 	{
-		if (%cl.lleg == 1) { %obj.lShoe.delete(); }
-		if (%cl.rleg == 1) { %obj.rShoe.delete(); }
+		if (%obj.isNodeVisible("lPeg")) { %obj.lShoe.delete(); }
+		if (%obj.isNodeVisible("rPeg")) { %obj.rShoe.delete(); }
 	}
 	if (%scriptObj.deleteIfSkirt)
 	{
-		if (%cl.hip == 1) { %obj.lShoe.delete(); %obj.rShoe.delete(); }
+		if (%obj.isNodeVisible("skirtHip")) { %obj.lShoe.delete(); %obj.rShoe.delete(); }
 	}
 
 	if (getWordCount(%scriptObj.hideNodeList) > 0)
