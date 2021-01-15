@@ -27,3 +27,12 @@ function hexFromRGB(%color)
 
 	return %rh @ %gh @ %bh;
 }
+
+function rgbFromHex(%hex)
+{
+	%r = hexToInt(getSubStr(%hex, 0, 2));
+	%g = hexToInt(getSubStr(%hex, 2, 2));
+	%b = hexToInt(getSubStr(%hex, 4, 2));
+
+	return %r SPC %g SPC %b;
+}

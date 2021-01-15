@@ -17,6 +17,7 @@ package ShoeMod_Customization
 		{
 			%node = getWord(%value, 0);
 			%firstWord = getWord(%value, 1);
+			%restWords = getWords(%value, 2, 3);
 			if (strContainsWord(%clientColors, %firstWord))
 			{
 				//is a client color name
@@ -25,7 +26,15 @@ package ShoeMod_Customization
 			else
 			{
 				//is a color vector
-				setObjectVariable(%scriptObj, "DefaultColor_" @ %node, clampRGBColorToPercent(getWords(%value, 1, 3)));
+				if (strLen(%firstWord) == 6)
+				{
+					%color = rgbFromHex(%firstWord);
+				}
+				else
+				{
+					%color = getWords(%node, 1, 3);
+				}
+				setObjectVariable(%scriptObj, "DefaultColor_" @ %node, clampRGBColorToPercent(%color));
 			}
 			return; //already set variable, do not need to call parent
 		}
@@ -238,17 +247,13 @@ function serverCmdSetShoeNodeColor(%cl, %node, %r, %g, %b)
 	if (%r $= "")
 	{
 		%color = getColorIDTable(%cl.currentColor);
-		
 		%r = getWord(%color, 0); %g = getWord(%color, 1); %b = getWord(%color, 2);
 	}
 	else if (strLen(%r) == 6)
 	{
 		//hex code support
-		%rHex = getSubStr(%r, 0, 2);
-		%gHex = getSubStr(%r, 2, 2);
-		%bHex = getSubStr(%r, 4, 2);
-		talk(%rHex SPC %gHex SPC %bHex);
-		%r = hexToInt(%rHex); %g = hexToInt(%gHex); %b = hexToInt(%bHex);
+		%color = rgbFromHex(%r);
+		%r = getWord(%color, 0); %g = getWord(%color, 1); %b = getWord(%color, 2);
 	}
 
 	%shoeName = %cl.getCurrentShoes(%cl);
