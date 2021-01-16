@@ -32,11 +32,25 @@ package ShoeMod_Customization
 				}
 				else
 				{
-					%color = getWords(%node, 1, 3);
+					%color = getWords(%value, 1, 3);
 				}
 				setObjectVariable(%scriptObj, "DefaultColor_" @ %node, clampRGBColorToPercent(%color));
 			}
 			return; //already set variable, do not need to call parent
+		}
+		else if (%varname $= "nodeTransparency")
+		{
+			%node = getWord(%value, 0);
+			%firstWord = getWord(%value, 1);
+
+			%transparency = getMin(getMax(%firstWord, 0), 1);
+			setObjectVariable(%scriptObj, "NodeTransparency_" @ %node, %transparency);
+			
+			if (%transparency < 1)
+			{
+				setObjectVariable(%scriptObj, "hasTransparency", 1);
+			}
+			return;
 		}
 		return parent::registerShoeScriptObjectVar(%scriptObj, %varName, %value);
 	}
@@ -175,22 +189,32 @@ function applyShoeColors(%shoeBot, %shoeName, %cl)
 	for (%i = 0; %i < getWordCount(%nodeList); %i++)
 	{
 		%node = getWord(%nodeList, %i);
+
+		if (%scriptObj.NodeTransparency_[%node] !$= "")
+		{
+			%transparency = %scriptObj.NodeTransparency_[%node];
+		}
+		else
+		{
+			%transparency = 1;
+		}
+
 		if (!isObject(%cl))
 		{
-			%color = %scriptObj.DefaultColor_[%node] SPC 1;
+			%color = %scriptObj.DefaultColor_[%node] SPC %transparency;
 		}
 		else if (%cl.getClassName() $= "GameConnection")
 		{
-			%color = %cl.loadShoeNodeColor(%shoeName, %node, %shoeBot.side) SPC "1";
+			%color = %cl.loadShoeNodeColor(%shoeName, %node, %shoeBot.side) SPC %transparency;
 		}
 
 		if (getWordCount(%color) != 4)
 		{
-			%color = "1 1 1 1";
+			%color = "1 1 1" @ %transparency;
 		}
 		if (%shoeBot.isNodeVisible(%node))
 		{
-			%shoeBot.setNodeColor(%node, %color SPC 1);
+			%shoeBot.setNodeColor(%node, %color SPC %transparency);
 		}
 	}
 

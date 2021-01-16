@@ -1,6 +1,6 @@
 function clampRGBColorToPercent(%color)
 {
-	%r = getWord(%color, 0); %g = getWord(%color, 1); %b = getWord(%color, 2);
+	%r = getWord(%color, 0); %g = getWord(%color, 1); %b = getWord(%color, 2); %a = getWord(%color, 3);
 
 	if (%r > 1 || %g > 1 || %b > 1)
 	{
@@ -10,7 +10,7 @@ function clampRGBColorToPercent(%color)
 	%g = getMax(getMin(%g, 1), 0) + 0;
 	%b = getMax(getMin(%b, 1), 0) + 0;
 
-	return mFloatLength(%r, 2) SPC mFloatLength(%g, 2) SPC mFloatLength(%b, 2);
+	return trim(mFloatLength(%r, 2) SPC mFloatLength(%g, 2) SPC mFloatLength(%b, 2) SPC %a);
 }
 
 function hexFromRGB(%color)

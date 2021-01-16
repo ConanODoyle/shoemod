@@ -309,7 +309,15 @@ function validateAvatarLegs(%obj, %shoeName, %cl)
 	{
 		for (%i = 0; %i < getWordCount(%scriptObj.showNodeList); %i++)
 		{
-			%obj.unhideNode(getWord(%scriptObj.showNodeList, %i));
+			%node = getWord(%scriptObj.showNodeList, %i);
+			%obj.unhideNode(%node);
+			
+			if (%node $= "rPeg" || $node $= "rShoe" || %node $= "skirtTrimRight") %obj.setNodeColor(%node, %cl.rLegColor);
+			if (%node $= "lPeg" || $node $= "lShoe" || %node $= "skirtTrimLeft") %obj.setNodeColor(%node, %cl.lLegColor);
+			if (%node $= "rArm" || $node $= "rArmSlim") %obj.setNodeColor(%node, %cl.rArmColor);
+			if (%node $= "lArm" || $node $= "rArmSlim") %obj.setNodeColor(%node, %cl.lArmColor);
+			if (%node $= "rHand" || $node $= "rHook") %obj.setNodeColor(%node, %cl.rHandColor);
+			if (%node $= "lHand" || $node $= "lHook") %obj.setNodeColor(%node, %cl.lHandColor);
 		}
 	}
 	if (getWordCount(%scriptObj.showNodeList) == 0 && getWordCount(%scriptObj.hideNodeList) == 0)
