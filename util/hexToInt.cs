@@ -21,6 +21,7 @@ function _singleHexToInt(%c, %pv)
 
 function _singleIntToHex(%i)
 {
+	%i = strLwr(%i);
 	return getSubStr("0123456789abcdef", %i, 1);
 }
 
