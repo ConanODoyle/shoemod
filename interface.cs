@@ -19,6 +19,7 @@ package ShoeMod_Interface
 
 	function GameConnection::exitCenterprintMenu(%cl)
 	{
+		stopRandomShoeLoop(%cl);
 		if ($Pref::Server::ShoeMod::ShoeAccess || %cl.ownsShoe(%cl.getSavedShoes()))
 		{
 			return parent::exitCenterprintMenu(%cl);
@@ -32,7 +33,6 @@ package ShoeMod_Interface
 		{
 			%cl.wearShoes(%cl.getSavedShoes());
 		}
-		stopRandomShoeLoop(%cl);
 		return parent::exitCenterprintMenu(%cl);
 	}
 

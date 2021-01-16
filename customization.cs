@@ -194,10 +194,7 @@ function applyShoeColors(%shoeBot, %shoeName, %cl)
 		}
 	}
 
-	if (%scriptObj.hasTransparency !$= "")
-	{
-		%shoeBot.startFade(0, 0, %scriptObj.hasTransparency);
-	}
+	%shoeBot.startFade(0, 0, %scriptObj.hasTransparency);
 }
 
 function setShoeDefaultColors(%cl, %shoeName)

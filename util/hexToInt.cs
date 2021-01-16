@@ -14,6 +14,7 @@ function hexToInt(%str)
 
 function _singleHexToInt(%c, %pv)
 {
+	%c = strLwr(%c);
 	%num = "0123456789abcdef";
 	%i = strPos(%num, %c);
 	return mPow(16, %pv) * %i;

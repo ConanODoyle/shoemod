@@ -123,8 +123,12 @@ function parseShoeSettings(%scriptObj, %directory)
 		%line = trim(%file.readLine());
 		%varName = getSafeVariableName(getWord(%line, 0));
 		%rest = getWords(%line, 1, getWordCount(%line));
-		if (%varName !$= "" && %rest !$= "")
+		if (%varName !$= "")
 		{
+			if (%rest $= "")
+			{
+				%rest = 1;
+			}
 			registerShoeScriptObjectVar(%scriptObj, %varName, %rest);
 		}
 		%settings++;
