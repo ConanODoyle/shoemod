@@ -122,7 +122,7 @@ function parseShoeSettings(%scriptObj, %directory)
 	{
 		%line = trim(%file.readLine());
 		%varName = getSafeVariableName(getWord(%line, 0));
-		%rest = getWords(%line, 1, getWordCount(%line));
+		%rest = collapseEscape(getWords(%line, 1, getWordCount(%line)));
 		if (%varName !$= "")
 		{
 			if (%rest $= "")
